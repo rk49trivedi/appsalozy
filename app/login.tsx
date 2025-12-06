@@ -1,4 +1,8 @@
+import { EmailIcon, EyeIcon, EyeOffIcon, PasswordIcon } from '@/components/login-icons';
+import { Logo } from '@/components/logo';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { apiClient, ApiError } from '@/lib/api/client';
+import { showToast } from '@/lib/toast';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -30,20 +34,42 @@ export default function LoginScreen() {
 
   const submitForm = async () => {
     if (!formData.email || !formData.password) {
+      showToast.error('Please enter both email and password', 'Validation Error');
       return;
     }
+
     setProcessing(true);
-    // TODO: Implement actual login logic
-    setTimeout(() => {
+
+    try {
+      const response = await apiClient.login(formData.email, formData.password);
+      
+      if (response.access_token) {
+        // Login successful - show success message and navigate
+        showToast.success('Login successful! Redirecting...', 'Welcome');
+        
+        // Small delay to show success message before navigation
+        setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 500);
+      } else {
+        showToast.error(
+          response.message || 'Login failed. Please try again.',
+          'Login Failed'
+        );
+      }
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.message || 'Login failed. Please check your credentials and try again.';
+      
+      showToast.error(errorMessage, 'Login Failed');
+    } finally {
       setProcessing(false);
-      // Navigate to tabs after successful login
-      router.replace('/(tabs)');
-    }, 1500);
+    }
   };
 
   const gradientColors = isDark 
-    ? ['#111827', '#1F2937', '#111827'] as const
-    : ['#F9FAFB', '#FFFFFF', '#FEF3E2'] as const;
+    ? ['#0F172A', '#1E293B', '#0F172A'] as const
+    : ['#F8FAFC', '#FFFFFF', '#FFF7ED'] as const;
 
   const cardBg = isDark ? '#1F2937' : '#FFFFFF';
   const inputBg = isDark ? '#374151' : '#F9FAFB';
@@ -73,47 +99,15 @@ export default function LoginScreen() {
           >
             <View style={tw`flex-1 justify-center px-5 py-8`}>
               {/* Logo Section - Mobile Optimized */}
-              <View style={tw`items-center mb-8`}>
-                <View style={tw`mb-6`}>
-                  <View style={[
-                    tw`w-24 h-24 rounded-3xl items-center justify-center`,
-                    { 
-                      backgroundColor: '#9A3412',
-                      shadowColor: '#9A3412',
-                      shadowOffset: { width: 0, height: 8 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 16,
-                      elevation: 8,
-                    }
-                  ]}>
-                    <Text style={tw`text-white text-4xl font-bold`}>S</Text>
-                  </View>
-                </View>
+              <Logo size={128} style={tw`mb-3`} />
 
-                <Text style={[
-                  tw`text-4xl font-black mb-3 text-center`,
-                  { color: textPrimary }
-                ]}>
-                  Welcome Back
-                </Text>
-                <Text style={[
-                  tw`text-base text-center px-4`,
-                  { color: textSecondary }
-                ]}>
-                  Sign in to your account to continue
-                </Text>
-              </View>
-
-              {/* Form Card - Full Mobile Width */}
+              {/* Form Card - Full Mobile Width - Clean Design */}
               <View style={[
                 tw`rounded-3xl p-6`,
                 {
                   backgroundColor: cardBg,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 12,
-                  elevation: 8,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                 }
               ]}>
                 {/* Email Input - Larger Touch Target */}
@@ -126,11 +120,11 @@ export default function LoginScreen() {
                   </Text>
                   <View style={tw`relative`}>
                     <View style={tw`absolute left-5 top-0 bottom-0 justify-center z-10`}>
-                      <Text style={tw`text-xl`}>✉</Text>
+                      <EmailIcon size={20} color={placeholderColor} />
                     </View>
                     <TextInput
                       style={[
-                        tw`w-full pl-14 pr-5 py-4 rounded-2xl border-2 text-base`,
+                        tw`w-full pl-14 pr-5 py-4 rounded-2xl border text-base`,
                         {
                           backgroundColor: inputBg,
                           borderColor: inputBorder,
@@ -160,11 +154,11 @@ export default function LoginScreen() {
                   </Text>
                   <View style={tw`relative`}>
                     <View style={tw`absolute left-5 top-0 bottom-0 justify-center z-10`}>
-                      <Text style={tw`text-xl`}>🔒</Text>
+                      <PasswordIcon size={20} color={placeholderColor} />
                     </View>
                     <TextInput
                       style={[
-                        tw`w-full pl-14 pr-14 py-4 rounded-2xl border-2 text-base`,
+                        tw`w-full pl-14 pr-14 py-4 rounded-2xl border text-base`,
                         {
                           backgroundColor: inputBg,
                           borderColor: inputBorder,
@@ -186,9 +180,11 @@ export default function LoginScreen() {
                       style={tw`absolute right-5 top-0 bottom-0 justify-center`}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={tw`text-xl`}>
-                        {showPassword ? '👁️' : '👁️‍🗨️'}
-                      </Text>
+                      {showPassword ? (
+                        <EyeOffIcon size={20} color={placeholderColor} />
+                      ) : (
+                        <EyeIcon size={20} color={placeholderColor} />
+                      )}
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -227,7 +223,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Sign In Button - Large Mobile Button */}
+                {/* Sign In Button - Large Mobile Button - No Shadow */}
                 <TouchableOpacity
                   onPress={submitForm}
                   disabled={processing || !formData.email || !formData.password}
@@ -237,11 +233,6 @@ export default function LoginScreen() {
                     {
                       backgroundColor: '#9A3412',
                       opacity: (processing || !formData.email || !formData.password) ? 0.6 : 1,
-                      shadowColor: '#9A3412',
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 8,
-                      elevation: 5,
                       minHeight: 56, // Large touch target
                     }
                   ]}

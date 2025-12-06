@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import tw from 'twrnc';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Sidebar } from '@/components/sidebar';
+import { apiClient } from '@/lib/api/client';
 
 // Mock data - Replace with actual API calls
 const mockData = {
@@ -106,7 +108,7 @@ export default function DashboardScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [refreshing, setRefreshing] = useState(false);
-  const navigationRouter = useRouter();
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -114,7 +116,7 @@ export default function DashboardScreen() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -123,15 +125,25 @@ export default function DashboardScreen() {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => {
-            // TODO: Clear auth state/tokens
-            // Navigate to login screen (root index)
-            // Use replace to navigate outside tabs stack
-            // Try both methods to ensure navigation works
+          onPress: async () => {
             try {
-              navigationRouter.replace('/');
-            } catch (e) {
-              router.replace('/');
+              // Close sidebar first
+              setSidebarVisible(false);
+              
+              // Call logout API
+              await apiClient.logout();
+              
+              // Navigate to login screen
+              setTimeout(() => {
+                router.replace('/');
+              }, 200);
+            } catch (error) {
+              console.error('Logout error:', error);
+              // Even if API call fails, clear local token and redirect
+              await apiClient.logout();
+              setTimeout(() => {
+                router.replace('/');
+              }, 200);
             }
           },
         },
@@ -161,15 +173,31 @@ export default function DashboardScreen() {
   const borderColor = isDark ? '#374151' : '#E5E7EB';
 
   return (
-    <SafeAreaView style={[tw`flex-1`, { backgroundColor: bgColor }]} edges={['top']}>
-      <ScrollView
+    <>
+      <Sidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        onLogout={handleLogout}
+      />
+      <SafeAreaView style={[tw`flex-1`, { backgroundColor: bgColor }]} edges={['top']}>
+        <ScrollView
         style={tw`flex-1`}
         contentContainerStyle={tw`pb-4`}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Header with Logout */}
+        {/* Header with Burger Menu */}
         <View style={tw`px-4 pt-4 pb-2 flex-row justify-between items-center`}>
-          <View>
+          <TouchableOpacity
+            onPress={() => setSidebarVisible(true)}
+            style={[
+              tw`p-2 rounded-xl`,
+              { backgroundColor: isDark ? '#374151' : '#F3F4F6' }
+            ]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={tw`text-2xl`}>☰</Text>
+          </TouchableOpacity>
+          <View style={tw`flex-1 ml-4`}>
             <Text style={[tw`text-2xl font-bold`, { color: textPrimary }]}>
               Welcome back!
             </Text>
@@ -177,15 +205,6 @@ export default function DashboardScreen() {
               Here's your salon overview
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={handleLogout}
-            style={[
-              tw`px-4 py-2 rounded-xl`,
-              { backgroundColor: isDark ? '#374151' : '#F3F4F6' }
-            ]}
-          >
-            <Text style={tw`text-orange-800 font-semibold`}>Logout</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Stats Cards Grid */}
@@ -503,5 +522,6 @@ export default function DashboardScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </>
   );
 }

@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+
+const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
@@ -26,6 +29,9 @@ export default function LoginScreen() {
   };
 
   const submitForm = async () => {
+    if (!formData.email || !formData.password) {
+      return;
+    }
     setProcessing(true);
     // TODO: Implement actual login logic
     setTimeout(() => {
@@ -36,132 +42,134 @@ export default function LoginScreen() {
   };
 
   const gradientColors = isDark 
-    ? ['#111827', '#1F2937', '#111827'] 
-    : ['#F9FAFB', '#FFFFFF', '#FEF3E2'];
+    ? ['#111827', '#1F2937', '#111827'] as const
+    : ['#F9FAFB', '#FFFFFF', '#FEF3E2'] as const;
 
-  const cardBg = isDark ? 'rgba(31, 41, 55, 0.8)' : 'rgba(255, 255, 255, 0.8)';
-  const cardBorder = isDark ? 'rgba(55, 65, 81, 0.5)' : 'rgba(229, 231, 235, 0.5)';
+  const cardBg = isDark ? '#1F2937' : '#FFFFFF';
   const inputBg = isDark ? '#374151' : '#F9FAFB';
   const inputBorder = isDark ? '#4B5563' : '#E5E7EB';
+  const inputFocusBorder = '#9A3412';
   const textPrimary = isDark ? '#FFFFFF' : '#111827';
   const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
   const placeholderColor = isDark ? '#9CA3AF' : '#6B7280';
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={tw`flex-1`}
-    >
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <SafeAreaView style={tw`flex-1`} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={tw`flex-1`}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <ScrollView
-          contentContainerStyle={tw`flex-grow justify-center px-6 py-10`}
-          keyboardShouldPersistTaps="handled"
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={tw`flex-1`}
         >
-          <View style={tw`w-full max-w-md self-center`}>
-            {/* Main Card */}
-            <View style={[
-              tw`rounded-3xl p-8`,
-              {
-                backgroundColor: cardBg,
-                borderWidth: 1,
-                borderColor: cardBorder,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.25,
-                shadowRadius: 20,
-                elevation: 10,
-              }
-            ]}>
-              
-              {/* Header Section */}
+          <ScrollView
+            contentContainerStyle={tw`flex-grow`}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={tw`flex-1 justify-center px-5 py-8`}>
+              {/* Logo Section - Mobile Optimized */}
               <View style={tw`items-center mb-8`}>
                 <View style={tw`mb-6`}>
-                  <View style={tw`relative`}>
-                    <View style={[
-                      tw`absolute inset-0 rounded-2xl`,
-                      { backgroundColor: 'rgba(154, 52, 18, 0.1)' }
-                    ]} />
-                    <View style={[
-                      tw`w-20 h-20 bg-orange-800 rounded-2xl items-center justify-center`,
-                      { backgroundColor: '#9A3412' }
-                    ]}>
-                      <Text style={tw`text-white text-2xl font-bold`}>S</Text>
-                    </View>
+                  <View style={[
+                    tw`w-24 h-24 rounded-3xl items-center justify-center`,
+                    { 
+                      backgroundColor: '#9A3412',
+                      shadowColor: '#9A3412',
+                      shadowOffset: { width: 0, height: 8 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 16,
+                      elevation: 8,
+                    }
+                  ]}>
+                    <Text style={tw`text-white text-4xl font-bold`}>S</Text>
                   </View>
                 </View>
 
                 <Text style={[
-                  tw`text-3xl font-black mb-2 text-center`,
+                  tw`text-4xl font-black mb-3 text-center`,
                   { color: textPrimary }
                 ]}>
                   Welcome Back
                 </Text>
                 <Text style={[
-                  tw`font-medium text-center`,
+                  tw`text-base text-center px-4`,
                   { color: textSecondary }
                 ]}>
                   Sign in to your account to continue
                 </Text>
               </View>
 
-              {/* Form */}
-              <View style={tw`gap-6`}>
-                {/* Email Input */}
-                <View style={tw`gap-2`}>
+              {/* Form Card - Full Mobile Width */}
+              <View style={[
+                tw`rounded-3xl p-6`,
+                {
+                  backgroundColor: cardBg,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }
+              ]}>
+                {/* Email Input - Larger Touch Target */}
+                <View style={tw`mb-5`}>
                   <Text style={[
-                    tw`text-sm font-semibold`,
-                    { color: textSecondary }
+                    tw`text-base font-semibold mb-3`,
+                    { color: textPrimary }
                   ]}>
                     Email Address
                   </Text>
                   <View style={tw`relative`}>
-                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
-                      <Text style={tw`text-lg`}>✉</Text>
+                    <View style={tw`absolute left-5 top-0 bottom-0 justify-center z-10`}>
+                      <Text style={tw`text-xl`}>✉</Text>
                     </View>
                     <TextInput
                       style={[
-                        tw`w-full pl-12 pr-4 py-3 rounded-2xl border`,
+                        tw`w-full pl-14 pr-5 py-4 rounded-2xl border-2 text-base`,
                         {
                           backgroundColor: inputBg,
                           borderColor: inputBorder,
                           color: textPrimary,
+                          minHeight: 56, // Larger touch target
                         }
                       ]}
-                      placeholder="Enter your email address"
+                      placeholder="Enter your email"
                       placeholderTextColor={placeholderColor}
                       value={formData.email}
                       onChangeText={(value) => handleChange('email', value)}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       autoComplete="email"
+                      autoCorrect={false}
                     />
                   </View>
                 </View>
 
-                {/* Password Input */}
-                <View style={tw`gap-2`}>
+                {/* Password Input - Larger Touch Target */}
+                <View style={tw`mb-5`}>
                   <Text style={[
-                    tw`text-sm font-semibold`,
-                    { color: textSecondary }
+                    tw`text-base font-semibold mb-3`,
+                    { color: textPrimary }
                   ]}>
                     Password
                   </Text>
                   <View style={tw`relative`}>
-                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
-                      <Text style={tw`text-lg`}>🔒</Text>
+                    <View style={tw`absolute left-5 top-0 bottom-0 justify-center z-10`}>
+                      <Text style={tw`text-xl`}>🔒</Text>
                     </View>
                     <TextInput
                       style={[
-                        tw`w-full pl-12 pr-12 py-3 rounded-2xl border`,
+                        tw`w-full pl-14 pr-14 py-4 rounded-2xl border-2 text-base`,
                         {
                           backgroundColor: inputBg,
                           borderColor: inputBorder,
                           color: textPrimary,
+                          minHeight: 56, // Larger touch target
                         }
                       ]}
                       placeholder="Enter your password"
@@ -171,104 +179,107 @@ export default function LoginScreen() {
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       autoComplete="password"
+                      autoCorrect={false}
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
-                      style={tw`absolute right-4 top-0 bottom-0 justify-center`}
+                      style={tw`absolute right-5 top-0 bottom-0 justify-center`}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Text style={tw`text-lg`}>
+                      <Text style={tw`text-xl`}>
                         {showPassword ? '👁️' : '👁️‍🗨️'}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
 
-                {/* Remember Me & Forgot Password */}
-                <View style={tw`flex-row justify-between items-center`}>
+                {/* Remember Me & Forgot Password - Better Spacing */}
+                <View style={tw`flex-row justify-between items-center mb-6`}>
                   <TouchableOpacity
                     onPress={() => handleChange('remember', !formData.remember)}
                     style={tw`flex-row items-center`}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <View style={[
-                      tw`w-4 h-4 border-2 rounded mr-3 items-center justify-center`,
+                      tw`w-5 h-5 border-2 rounded items-center justify-center mr-3`,
                       {
                         backgroundColor: formData.remember ? '#9A3412' : 'transparent',
                         borderColor: formData.remember ? '#9A3412' : (isDark ? '#4B5563' : '#D1D5DB'),
                       }
                     ]}>
                       {formData.remember && (
-                        <Text style={tw`text-white text-xs`}>✓</Text>
+                        <Text style={tw`text-white text-xs font-bold`}>✓</Text>
                       )}
                     </View>
                     <Text style={[
-                      tw`text-sm font-medium`,
-                      { color: textSecondary }
+                      tw`text-base font-medium`,
+                      { color: textPrimary }
                     ]}>
                       Remember me
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity>
-                    <Text style={tw`text-sm font-semibold text-orange-800`}>
-                      Forgot Password?
+                  <TouchableOpacity
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Text style={tw`text-base font-semibold text-orange-800`}>
+                      Forgot?
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Sign In Button */}
+                {/* Sign In Button - Large Mobile Button */}
                 <TouchableOpacity
                   onPress={submitForm}
-                  disabled={processing}
+                  disabled={processing || !formData.email || !formData.password}
+                  activeOpacity={0.8}
                   style={[
-                    tw`w-full mt-8 px-6 py-3 rounded-2xl items-center justify-center`,
+                    tw`w-full py-4 rounded-2xl items-center justify-center mb-6`,
                     {
                       backgroundColor: '#9A3412',
-                      opacity: processing ? 0.5 : 1,
-                      shadowColor: '#000',
+                      opacity: (processing || !formData.email || !formData.password) ? 0.6 : 1,
+                      shadowColor: '#9A3412',
                       shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.3,
                       shadowRadius: 8,
                       elevation: 5,
+                      minHeight: 56, // Large touch target
                     }
                   ]}
                 >
                   {processing ? (
                     <View style={tw`flex-row items-center`}>
                       <ActivityIndicator color="#fff" size="small" style={tw`mr-3`} />
-                      <Text style={tw`text-white font-bold text-base`}>
+                      <Text style={tw`text-white font-bold text-lg`}>
                         Signing in...
                       </Text>
                     </View>
                   ) : (
-                    <View style={tw`flex-row items-center`}>
-                      <Text style={tw`text-white font-bold text-base mr-2`}>→</Text>
-                      <Text style={tw`text-white font-bold text-base`}>
-                        Sign In
-                      </Text>
-                    </View>
+                    <Text style={tw`text-white font-bold text-lg`}>
+                      Sign In
+                    </Text>
                   )}
                 </TouchableOpacity>
-              </View>
 
-              {/* Sign Up Link */}
-              <View style={[
-                tw`mt-8 pt-6 border-t`,
-                { borderColor: isDark ? '#374151' : '#E5E7EB' }
-              ]}>
-                <Text style={[
-                  tw`font-medium text-center`,
-                  { color: textSecondary }
+                {/* Sign Up Link - Better Spacing */}
+                <View style={[
+                  tw`pt-6 border-t items-center`,
+                  { borderColor: isDark ? '#374151' : '#E5E7EB' }
                 ]}>
-                  Don't have an account?{' '}
-                  <Text style={tw`font-bold text-orange-800`}>
-                    Sign Up
+                  <Text style={[
+                    tw`text-base text-center`,
+                    { color: textSecondary }
+                  ]}>
+                    Don't have an account?{' '}
+                    <Text style={tw`font-bold text-orange-800`}>
+                      Sign Up
+                    </Text>
                   </Text>
-                </Text>
+                </View>
               </View>
             </View>
-          </View>
-        </ScrollView>
-      </LinearGradient>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </LinearGradient>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-

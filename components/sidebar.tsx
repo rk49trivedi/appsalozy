@@ -59,7 +59,7 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon, route: '/(tabs)' },
-    { id: 'appointments', label: 'All Appointments', Icon: AppointmentsIcon, route: null },
+    { id: 'appointments', label: 'All Appointments', Icon: AppointmentsIcon, route: '/appointments' },
     { id: 'my-appointments', label: 'My Appointments', Icon: AppointmentsIcon, route: null },
     { id: 'seats', label: 'Seats', Icon: SeatsIcon, route: null },
     { id: 'services', label: 'Services', Icon: ServicesIcon, route: null },

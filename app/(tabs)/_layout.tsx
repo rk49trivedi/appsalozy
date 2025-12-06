@@ -24,34 +24,34 @@ export default function TabLayout() {
 
   return (
     <AuthGuard>
-      <Tabs
-        screenOptions={{
+    <Tabs
+      screenOptions={{
           tabBarActiveTintColor: SalozyColors.primary.DEFAULT,
           tabBarInactiveTintColor: colorScheme === 'dark' ? '#9CA3AF' : '#6B7280',
-          headerShown: false,
-          tabBarButton: HapticTab,
+        headerShown: false,
+        tabBarButton: HapticTab,
           tabBarStyle: {
             backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#FFFFFF',
             borderTopColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
           },
-        }}>
-        <Tabs.Screen
-          name="index"
-          options={{
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{
             title: 'Dashboard',
             tabBarIcon: ({ color, focused }) => (
               <DashboardIcon size={24} color={focused ? SalozyColors.primary.DEFAULT : color} />
             ),
-          }}
-        />
-        <Tabs.Screen
-          name="explore"
-          options={{
-            title: 'Explore',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-          }}
-        />
-      </Tabs>
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+        }}
+      />
+    </Tabs>
     </AuthGuard>
   );
 }

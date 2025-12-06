@@ -6,7 +6,7 @@ import { Text } from './Text';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'success' | 'error' | 'warning' | 'info' | 'pending' | 'inProgress' | 'completed' | 'cancelled';
+  variant?: 'success' | 'error' | 'warning' | 'info' | 'pending' | 'inProgress' | 'completed' | 'cancelled' | 'approved';
   style?: ViewStyle;
 }
 
@@ -47,9 +47,13 @@ export function Badge({ children, variant = 'info', style }: BadgeProps) {
       bg: SalozyColors.statusBg.error[isDark ? 'dark' : 'light'],
       text: SalozyColors.status.cancelled,
     },
+    approved: {
+      bg: SalozyColors.statusBg.success[isDark ? 'dark' : 'light'],
+      text: SalozyColors.status.success,
+    },
   };
 
-  const config = variantConfig[variant];
+  const config = variantConfig[variant] || variantConfig.info;
 
   return (
     <View

@@ -12,7 +12,7 @@ export default function ExploreScreen() {
         tw`text-2xl font-bold mb-4`,
         { color: isDark ? '#FFFFFF' : '#111827' }
       ]}>
-        Explore
+          Explore
       </Text>
       <Text style={[
         tw`text-base text-center`,

@@ -1,12 +1,14 @@
+import { Button, Card, Input, Text } from '@/components/atoms';
 import { EmailIcon, EyeIcon, EyeOffIcon, PasswordIcon } from '@/components/login-icons';
 import { Logo } from '@/components/logo';
+import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { showToast } from '@/lib/toast';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 
@@ -67,17 +69,7 @@ export default function LoginScreen() {
     }
   };
 
-  const gradientColors = isDark 
-    ? ['#0F172A', '#1E293B', '#0F172A'] as const
-    : ['#F8FAFC', '#FFFFFF', '#FFF7ED'] as const;
-
-  const cardBg = isDark ? '#1F2937' : '#FFFFFF';
-  const inputBg = isDark ? '#374151' : '#F9FAFB';
-  const inputBorder = isDark ? '#4B5563' : '#E5E7EB';
-  const inputFocusBorder = '#9A3412';
-  const textPrimary = isDark ? '#FFFFFF' : '#111827';
-  const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
-  const placeholderColor = isDark ? '#9CA3AF' : '#6B7280';
+  const colors = getThemeColors(isDark);
 
   return (
     <SafeAreaView style={tw`flex-1`} edges={['top', 'bottom']}>
@@ -87,7 +79,7 @@ export default function LoginScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <LinearGradient
-          colors={gradientColors}
+          colors={colors.gradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={tw`flex-1`}
@@ -102,92 +94,44 @@ export default function LoginScreen() {
               <Logo size={128} style={tw`mb-3`} />
 
               {/* Form Card - Full Mobile Width - Clean Design */}
-              <View style={[
-                tw`rounded-3xl p-6`,
-                {
-                  backgroundColor: cardBg,
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                }
-              ]}>
-                {/* Email Input - Larger Touch Target */}
-                <View style={tw`mb-5`}>
-                  <Text style={[
-                    tw`text-base font-semibold mb-3`,
-                    { color: textPrimary }
-                  ]}>
-                    Email Address
-                  </Text>
-                  <View style={tw`relative`}>
-                    <View style={tw`absolute left-5 top-0 bottom-0 justify-center z-10`}>
-                      <EmailIcon size={20} color={placeholderColor} />
-                    </View>
-                    <TextInput
-                      style={[
-                        tw`w-full pl-14 pr-5 py-4 rounded-2xl border text-base`,
-                        {
-                          backgroundColor: inputBg,
-                          borderColor: inputBorder,
-                          color: textPrimary,
-                          minHeight: 56, // Larger touch target
-                        }
-                      ]}
-                      placeholder="Enter your email"
-                      placeholderTextColor={placeholderColor}
-                      value={formData.email}
-                      onChangeText={(value) => handleChange('email', value)}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoComplete="email"
-                      autoCorrect={false}
-                    />
-                  </View>
-                </View>
+              <Card style={tw`w-full`}>
+                {/* Email Input */}
+                <Input
+                  label="Email Address"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChangeText={(value) => handleChange('email', value)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect={false}
+                  leftIcon={<EmailIcon size={20} color={colors.placeholder} />}
+                />
 
-                {/* Password Input - Larger Touch Target */}
-                <View style={tw`mb-5`}>
-                  <Text style={[
-                    tw`text-base font-semibold mb-3`,
-                    { color: textPrimary }
-                  ]}>
-                    Password
-                  </Text>
-                  <View style={tw`relative`}>
-                    <View style={tw`absolute left-5 top-0 bottom-0 justify-center z-10`}>
-                      <PasswordIcon size={20} color={placeholderColor} />
-                    </View>
-                    <TextInput
-                      style={[
-                        tw`w-full pl-14 pr-14 py-4 rounded-2xl border text-base`,
-                        {
-                          backgroundColor: inputBg,
-                          borderColor: inputBorder,
-                          color: textPrimary,
-                          minHeight: 56, // Larger touch target
-                        }
-                      ]}
-                      placeholder="Enter your password"
-                      placeholderTextColor={placeholderColor}
-                      value={formData.password}
-                      onChangeText={(value) => handleChange('password', value)}
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                      autoComplete="password"
-                      autoCorrect={false}
-                    />
+                {/* Password Input */}
+                <Input
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChangeText={(value) => handleChange('password', value)}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  autoCorrect={false}
+                  leftIcon={<PasswordIcon size={20} color={colors.placeholder} />}
+                  rightIcon={
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
-                      style={tw`absolute right-5 top-0 bottom-0 justify-center`}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       {showPassword ? (
-                        <EyeOffIcon size={20} color={placeholderColor} />
+                        <EyeOffIcon size={20} color={colors.placeholder} />
                       ) : (
-                        <EyeIcon size={20} color={placeholderColor} />
+                        <EyeIcon size={20} color={colors.placeholder} />
                       )}
                     </TouchableOpacity>
-                  </View>
-                </View>
+                  }
+                />
 
                 {/* Remember Me & Forgot Password - Better Spacing */}
                 <View style={tw`flex-row justify-between items-center mb-6`}>
@@ -199,74 +143,51 @@ export default function LoginScreen() {
                     <View style={[
                       tw`w-5 h-5 border-2 rounded items-center justify-center mr-3`,
                       {
-                        backgroundColor: formData.remember ? '#9A3412' : 'transparent',
-                        borderColor: formData.remember ? '#9A3412' : (isDark ? '#4B5563' : '#D1D5DB'),
+                        backgroundColor: formData.remember ? SalozyColors.primary.DEFAULT : 'transparent',
+                        borderColor: formData.remember ? SalozyColors.primary.DEFAULT : colors.inputBorder,
                       }
                     ]}>
                       {formData.remember && (
-                        <Text style={tw`text-white text-xs font-bold`}>✓</Text>
+                        <Text size="xs" weight="bold" style={{ color: '#FFFFFF' }}>✓</Text>
                       )}
                     </View>
-                    <Text style={[
-                      tw`text-base font-medium`,
-                      { color: textPrimary }
-                    ]}>
+                    <Text size="base" weight="medium">
                       Remember me
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <Text style={tw`text-base font-semibold text-orange-800`}>
+                    <Text size="base" weight="semibold" variant="primaryBrand">
                       Forgot?
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Sign In Button - Large Mobile Button - No Shadow */}
-                <TouchableOpacity
+                {/* Sign In Button */}
+                <Button
                   onPress={submitForm}
                   disabled={processing || !formData.email || !formData.password}
-                  activeOpacity={0.8}
-                  style={[
-                    tw`w-full py-4 rounded-2xl items-center justify-center mb-6`,
-                    {
-                      backgroundColor: '#9A3412',
-                      opacity: (processing || !formData.email || !formData.password) ? 0.6 : 1,
-                      minHeight: 56, // Large touch target
-                    }
-                  ]}
+                  loading={processing}
+                  fullWidth
+                  style={tw`mb-6`}
                 >
-                  {processing ? (
-                    <View style={tw`flex-row items-center`}>
-                      <ActivityIndicator color="#fff" size="small" style={tw`mr-3`} />
-                      <Text style={tw`text-white font-bold text-lg`}>
-                        Signing in...
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={tw`text-white font-bold text-lg`}>
-                      Sign In
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                  {processing ? 'Signing in...' : 'Sign In'}
+                </Button>
 
-                {/* Sign Up Link - Better Spacing */}
+                {/* Sign Up Link */}
                 <View style={[
                   tw`pt-6 border-t items-center`,
-                  { borderColor: isDark ? '#374151' : '#E5E7EB' }
+                  { borderColor: colors.border }
                 ]}>
-                  <Text style={[
-                    tw`text-base text-center`,
-                    { color: textSecondary }
-                  ]}>
+                  <Text size="base" variant="secondary" style={tw`text-center`}>
                     Don't have an account?{' '}
-                    <Text style={tw`font-bold text-orange-800`}>
+                    <Text weight="bold" variant="primaryBrand">
                       Sign Up
                     </Text>
                   </Text>
                 </View>
-              </View>
+              </Card>
             </View>
           </ScrollView>
         </LinearGradient>

@@ -2,8 +2,9 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
+import { DashboardIcon } from '@/components/sidebar-icons';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
+import { SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 /**
@@ -23,15 +24,22 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: SalozyColors.primary.DEFAULT,
+        tabBarInactiveTintColor: colorScheme === 'dark' ? '#9CA3AF' : '#6B7280',
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#FFFFFF',
+          borderTopColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Dashboard',
+          tabBarIcon: ({ color, focused }) => (
+            <DashboardIcon size={24} color={focused ? SalozyColors.primary.DEFAULT : color} />
+          ),
         }}
       />
       <Tabs.Screen

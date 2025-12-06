@@ -7,6 +7,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Sidebar } from '@/components/sidebar';
 import { apiClient } from '@/lib/api/client';
+import { RevenueIcon, AppointmentsIcon, CustomersIcon, SeatsIcon } from '@/components/dashboard-icons';
+import { SalozyColors } from '@/constants/colors';
 
 // Mock data - Replace with actual API calls
 const mockData = {
@@ -216,11 +218,17 @@ export default function DashboardScreen() {
               { backgroundColor: cardBg, borderWidth: 1, borderColor }
             ]}>
               <View style={tw`flex-row items-center justify-between mb-3`}>
-                <View style={tw`w-10 h-10 rounded-full bg-green-500/20 items-center justify-center`}>
-                  <Text style={tw`text-lg`}>💰</Text>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center`,
+                  { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+                ]}>
+                  <RevenueIcon size={24} color={SalozyColors.status.success} />
                 </View>
-                <View style={tw`px-2 py-1 rounded-full bg-green-500/10`}>
-                  <Text style={tw`text-green-600 text-xs font-semibold`}>Today</Text>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+                ]}>
+                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.status.success }]}>Today</Text>
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
@@ -238,11 +246,17 @@ export default function DashboardScreen() {
               { backgroundColor: cardBg, borderWidth: 1, borderColor }
             ]}>
               <View style={tw`flex-row items-center justify-between mb-3`}>
-                <View style={tw`w-10 h-10 rounded-full bg-blue-500/20 items-center justify-center`}>
-                  <Text style={tw`text-lg`}>📅</Text>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center`,
+                  { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+                ]}>
+                  <AppointmentsIcon size={24} color={SalozyColors.primary.DEFAULT} />
                 </View>
-                <View style={tw`px-2 py-1 rounded-full bg-blue-500/10`}>
-                  <Text style={tw`text-blue-600 text-xs font-semibold`}>Today</Text>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+                ]}>
+                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.primary.DEFAULT }]}>Today</Text>
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
@@ -265,18 +279,24 @@ export default function DashboardScreen() {
               { backgroundColor: cardBg, borderWidth: 1, borderColor }
             ]}>
               <View style={tw`flex-row items-center justify-between mb-3`}>
-                <View style={tw`w-10 h-10 rounded-full bg-purple-500/20 items-center justify-center`}>
-                  <Text style={tw`text-lg`}>👥</Text>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center`,
+                  { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                ]}>
+                  <CustomersIcon size={24} color={SalozyColors.status.info} />
                 </View>
-                <View style={tw`px-2 py-1 rounded-full bg-purple-500/10`}>
-                  <Text style={tw`text-purple-600 text-xs font-semibold`}>New</Text>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                ]}>
+                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.status.info }]}>New</Text>
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
                 {mockData.customerInsights.total_customers}
               </Text>
               <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Customers</Text>
-              <Text style={[tw`text-sm font-semibold mt-1`, { color: '#8B5CF6' }]}>
+              <Text style={[tw`text-sm font-semibold mt-1`, { color: SalozyColors.status.info }]}>
                 {mockData.customerInsights.new_customers} new • {mockData.customerInsights.repeat_customers} returning
               </Text>
             </View>
@@ -287,11 +307,17 @@ export default function DashboardScreen() {
               { backgroundColor: cardBg, borderWidth: 1, borderColor }
             ]}>
               <View style={tw`flex-row items-center justify-between mb-3`}>
-                <View style={tw`w-10 h-10 rounded-full bg-orange-500/20 items-center justify-center`}>
-                  <Text style={tw`text-lg`}>🪑</Text>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center`,
+                  { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                ]}>
+                  <SeatsIcon size={24} color={SalozyColors.status.warning} />
                 </View>
-                <View style={tw`px-2 py-1 rounded-full bg-orange-500/10`}>
-                  <Text style={tw`text-orange-600 text-xs font-semibold`}>Available</Text>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                ]}>
+                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.status.warning }]}>Available</Text>
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>

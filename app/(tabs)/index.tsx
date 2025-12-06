@@ -1,156 +1,132 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import tw from 'twrnc';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Sidebar } from '@/components/sidebar';
-import { apiClient } from '@/lib/api/client';
+import { useSidebar } from '@/components/global-sidebar';
+import { apiClient, ApiError } from '@/lib/api/client';
 import { RevenueIcon, AppointmentsIcon, CustomersIcon, SeatsIcon } from '@/components/dashboard-icons';
 import { SalozyColors } from '@/constants/colors';
+import { showToast } from '@/lib/toast';
+import { API_ENDPOINTS } from '@/lib/api/config';
+import { useAuth } from '@/hooks/use-auth';
+import { router } from 'expo-router';
 
-// Mock data - Replace with actual API calls
-const mockData = {
+interface DashboardData {
   appointmentStats: {
-    today_total: 12,
-    today_pending: 3,
-    over_all_apoinment: 156,
-    today_in_progress: 2,
-    today_completed: 7,
-    today_cancelled: 0,
-  },
+    today_total: number;
+    today_pending: number;
+    over_all_apoinment: number;
+    today_in_progress: number;
+    today_completed: number;
+    today_cancelled: number;
+  };
   seatStats: {
-    total: 8,
-    available: 5,
-    occupied: 2,
-    maintenance: 1,
-    cleaning: 0,
-  },
+    total: number;
+    available: number;
+    occupied: number;
+    maintenance: number;
+    cleaning: number;
+  };
   revenueStats: {
-    today: 1250.00,
-    week: 8750.00,
-    month: 32500.00,
-    grand_total: 125000.00,
-  },
+    today: number;
+    week: number;
+    month: number;
+    grand_total: number;
+  };
   customerInsights: {
-    total_customers: 89,
-    new_customers: 12,
-    repeat_customers: 77,
-  },
-  upcomingAppointments: [
-    {
-      id: 1,
-      customer_name: 'John Doe',
-      date: 'Dec 15, 2024',
-      time: '10:00 AM',
-      ticket_number: 'T001',
-      services_count: 2,
-      status: 'pending',
-    },
-    {
-      id: 2,
-      customer_name: 'Jane Smith',
-      date: 'Dec 15, 2024',
-      time: '11:30 AM',
-      ticket_number: 'T002',
-      services_count: 1,
-      status: 'in_progress',
-    },
-    {
-      id: 3,
-      customer_name: 'Mike Johnson',
-      date: 'Dec 15, 2024',
-      time: '2:00 PM',
-      ticket_number: 'T003',
-      services_count: 3,
-      status: 'pending',
-    },
-  ],
-  recentCompletedServices: [
-    {
-      id: 1,
-      customer_name: 'Sarah Williams',
-      service_name: 'Haircut & Styling',
-      seat: 'Seat 1',
-      completed_at: '2024-12-15T09:30:00',
-      duration: '45 min',
-    },
-    {
-      id: 2,
-      customer_name: 'David Brown',
-      service_name: 'Beard Trim',
-      seat: 'Seat 3',
-      completed_at: '2024-12-15T08:15:00',
-      duration: '20 min',
-    },
-  ],
-  serviceAnalytics: [
-    {
-      service_name: 'Haircut & Styling',
-      total_bookings: 45,
-      total_revenue: 6750.00,
-    },
-    {
-      service_name: 'Beard Trim',
-      total_bookings: 32,
-      total_revenue: 1920.00,
-    },
-    {
-      service_name: 'Hair Color',
-      total_bookings: 18,
-      total_revenue: 5400.00,
-    },
-  ],
-};
-
-const currency_symbol = '₹';
+    total_customers: number;
+    new_customers: number;
+    repeat_customers: number;
+  };
+  upcomingAppointments: Array<{
+    id: number;
+    customer_name: string;
+    date: string;
+    time: string;
+    ticket_number: string;
+    services_count: number;
+    status: string;
+  }>;
+  recentCompletedServices: Array<{
+    id: number;
+    customer_name: string;
+    service_name: string;
+    seat: string;
+    completed_at: string;
+    duration: string;
+  }>;
+  serviceAnalytics: Array<{
+    service_name: string;
+    total_bookings: number;
+    total_revenue: number;
+  }>;
+}
 
 export default function DashboardScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { openSidebar } = useSidebar();
+  const { isAuthenticated, isChecking } = useAuth(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [currencySymbol, setCurrencySymbol] = useState('₹');
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isChecking && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isChecking]);
+
+  const fetchDashboardData = async () => {
+    // Don't fetch if not authenticated
+    if (!isAuthenticated) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await apiClient.get<DashboardData>(API_ENDPOINTS.DASHBOARD);
+      
+      if (response.success && response.data) {
+        setDashboardData(response.data);
+        if (response.currency_symbol) {
+          setCurrencySymbol(response.currency_symbol);
+        }
+      } else {
+        showToast.error('Failed to load dashboard data', 'Error');
+      }
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      
+      // If unauthorized, redirect to login
+      if (apiError.status === 401) {
+        await apiClient.logout();
+        router.replace('/login');
+        return;
+      }
+      
+      showToast.error(
+        apiError.message || 'Failed to load dashboard data',
+        'Error'
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && !isChecking) {
+      fetchDashboardData();
+    }
+  }, [isAuthenticated, isChecking]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    // TODO: Fetch data from API
-    setTimeout(() => setRefreshing(false), 1000);
-  };
-
-  const handleLogout = async () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Close sidebar first
-              setSidebarVisible(false);
-              
-              // Call logout API
-              await apiClient.logout();
-              
-              // Navigate to login screen
-              setTimeout(() => {
-                router.replace('/');
-              }, 200);
-            } catch (error) {
-              console.error('Logout error:', error);
-              // Even if API call fails, clear local token and redirect
-              await apiClient.logout();
-              setTimeout(() => {
-                router.replace('/');
-              }, 200);
-            }
-          },
-        },
-      ]
-    );
+    fetchDashboardData();
   };
 
   const getStatusColor = (status: string) => {
@@ -164,8 +140,19 @@ export default function DashboardScreen() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    try {
+      // Handle relative time strings (e.g., "2 hours ago") or date strings
+      if (dateString.includes('ago') || dateString.includes('from now')) {
+        return dateString; // Return as-is if it's already a relative time
+      }
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original if parsing fails
+      }
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return dateString; // Return original if any error occurs
+    }
   };
 
   const bgColor = isDark ? '#111827' : '#F9FAFB';
@@ -174,15 +161,53 @@ export default function DashboardScreen() {
   const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
   const borderColor = isDark ? '#374151' : '#E5E7EB';
 
+  // Show loading while checking authentication
+  if (isChecking) {
+    return (
+      <SafeAreaView style={[tw`flex-1 items-center justify-center`, { backgroundColor: bgColor }]} edges={['top']}>
+        <ActivityIndicator size="large" color={SalozyColors.primary.DEFAULT} />
+        <Text style={[tw`mt-4 text-base`, { color: textSecondary }]}>Checking authentication...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (loading && !dashboardData) {
+    return (
+      <SafeAreaView style={[tw`flex-1 items-center justify-center`, { backgroundColor: bgColor }]} edges={['top']}>
+        <ActivityIndicator size="large" color={SalozyColors.primary.DEFAULT} />
+        <Text style={[tw`mt-4 text-base`, { color: textSecondary }]}>Loading dashboard...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <SafeAreaView style={[tw`flex-1 items-center justify-center px-4`, { backgroundColor: bgColor }]} edges={['top']}>
+        <Text style={[tw`text-lg font-semibold mb-2`, { color: textPrimary }]}>No data available</Text>
+        <Text style={[tw`text-sm text-center mb-4`, { color: textSecondary }]}>
+          Unable to load dashboard data. Please try again.
+        </Text>
+        <TouchableOpacity
+          onPress={fetchDashboardData}
+          style={[
+            tw`px-6 py-3 rounded-xl`,
+            { backgroundColor: SalozyColors.primary.DEFAULT }
+          ]}
+        >
+          <Text style={tw`text-white font-semibold`}>Retry</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <>
-      <Sidebar
-        visible={sidebarVisible}
-        onClose={() => setSidebarVisible(false)}
-        onLogout={handleLogout}
-      />
-      <SafeAreaView style={[tw`flex-1`, { backgroundColor: bgColor }]} edges={['top']}>
-        <ScrollView
+    <SafeAreaView style={[tw`flex-1`, { backgroundColor: bgColor }]} edges={['top']}>
+      <ScrollView
         style={tw`flex-1`}
         contentContainerStyle={tw`pb-4`}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -190,7 +215,7 @@ export default function DashboardScreen() {
         {/* Header with Burger Menu */}
         <View style={tw`px-4 pt-4 pb-2 flex-row justify-between items-center`}>
           <TouchableOpacity
-            onPress={() => setSidebarVisible(true)}
+            onPress={openSidebar}
             style={[
               tw`p-2 rounded-xl`,
               { backgroundColor: isDark ? '#374151' : '#F3F4F6' }
@@ -232,11 +257,11 @@ export default function DashboardScreen() {
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
-                {currency_symbol} {mockData.revenueStats.grand_total.toLocaleString()}
+                {currencySymbol} {dashboardData.revenueStats.grand_total.toLocaleString()}
               </Text>
               <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Revenue</Text>
               <Text style={[tw`text-sm font-semibold mt-1`, { color: '#22C55E' }]}>
-                {currency_symbol} {mockData.revenueStats.today.toFixed(2)} today
+                {currencySymbol} {dashboardData.revenueStats.today.toFixed(2)} today
               </Text>
             </View>
 
@@ -260,15 +285,15 @@ export default function DashboardScreen() {
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
-                {mockData.appointmentStats.over_all_apoinment}
+                {dashboardData.appointmentStats.over_all_apoinment}
               </Text>
               <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Appointments</Text>
               <View style={tw`flex-row gap-2 mt-1`}>
                 <View style={tw`px-2 py-0.5 rounded-full bg-yellow-500/10`}>
-                  <Text style={tw`text-yellow-600 text-xs`}>{mockData.appointmentStats.today_pending} pending</Text>
+                  <Text style={tw`text-yellow-600 text-xs`}>{dashboardData.appointmentStats.today_pending} pending</Text>
                 </View>
                 <View style={tw`px-2 py-0.5 rounded-full bg-green-500/10`}>
-                  <Text style={tw`text-green-600 text-xs`}>{mockData.appointmentStats.today_completed} done</Text>
+                  <Text style={tw`text-green-600 text-xs`}>{dashboardData.appointmentStats.today_completed} done</Text>
                 </View>
               </View>
             </View>
@@ -293,11 +318,11 @@ export default function DashboardScreen() {
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
-                {mockData.customerInsights.total_customers}
+                {dashboardData.customerInsights.total_customers}
               </Text>
               <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Customers</Text>
               <Text style={[tw`text-sm font-semibold mt-1`, { color: SalozyColors.status.info }]}>
-                {mockData.customerInsights.new_customers} new • {mockData.customerInsights.repeat_customers} returning
+                {dashboardData.customerInsights.new_customers} new • {dashboardData.customerInsights.repeat_customers} returning
               </Text>
             </View>
 
@@ -321,11 +346,11 @@ export default function DashboardScreen() {
                 </View>
               </View>
               <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
-                {mockData.seatStats.total}
+                {dashboardData.seatStats.total}
               </Text>
               <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Seats</Text>
               <Text style={[tw`text-sm font-semibold mt-1`, { color: '#F97316' }]}>
-                {mockData.seatStats.available} available • {mockData.seatStats.occupied} occupied
+                {dashboardData.seatStats.available} available • {dashboardData.seatStats.occupied} occupied
               </Text>
             </View>
           </View>
@@ -350,28 +375,28 @@ export default function DashboardScreen() {
             <View style={tw`flex-row gap-2 mb-4`}>
               <View style={tw`flex-1 bg-blue-500/10 rounded-xl p-3 items-center`}>
                 <Text style={[tw`text-2xl font-bold`, { color: '#3B82F6' }]}>
-                  {mockData.appointmentStats.today_total}
+                  {dashboardData.appointmentStats.today_total}
                 </Text>
                 <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>Total</Text>
               </View>
               <View style={tw`flex-1 bg-yellow-500/10 rounded-xl p-3 items-center`}>
                 <Text style={[tw`text-2xl font-bold`, { color: '#FBBF24' }]}>
-                  {mockData.appointmentStats.today_pending}
+                  {dashboardData.appointmentStats.today_pending}
                 </Text>
                 <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>Pending</Text>
               </View>
               <View style={tw`flex-1 bg-green-500/10 rounded-xl p-3 items-center`}>
                 <Text style={[tw`text-2xl font-bold`, { color: '#22C55E' }]}>
-                  {mockData.appointmentStats.today_completed}
+                  {dashboardData.appointmentStats.today_completed}
                 </Text>
                 <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>Completed</Text>
               </View>
             </View>
 
             {/* Appointments List */}
-            {mockData.upcomingAppointments.length > 0 ? (
+            {dashboardData.upcomingAppointments.length > 0 ? (
               <View style={tw`gap-3`}>
-                {mockData.upcomingAppointments.map((appointment) => {
+                {dashboardData.upcomingAppointments.map((appointment) => {
                   const statusColor = getStatusColor(appointment.status);
                   return (
                     <View
@@ -452,9 +477,9 @@ export default function DashboardScreen() {
             <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Recent Activity
             </Text>
-            {mockData.recentCompletedServices.length > 0 ? (
+            {dashboardData.recentCompletedServices.length > 0 ? (
               <View style={tw`gap-4`}>
-                {mockData.recentCompletedServices.map((service, index) => {
+                {dashboardData.recentCompletedServices.map((service, index) => {
                   const colors = ['#3B82F6', '#22C55E', '#FBBF24', '#8B5CF6'];
                   const color = colors[index % colors.length];
                   return (
@@ -499,9 +524,9 @@ export default function DashboardScreen() {
             <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Top Services
             </Text>
-            {mockData.serviceAnalytics.length > 0 ? (
+            {dashboardData.serviceAnalytics.length > 0 ? (
               <View style={tw`gap-3`}>
-                {mockData.serviceAnalytics.map((service, index) => (
+                {dashboardData.serviceAnalytics.map((service, index) => (
                   <View
                     key={index}
                     style={[
@@ -531,7 +556,7 @@ export default function DashboardScreen() {
                         </Text>
                       </View>
                       <Text style={[tw`font-semibold`, { color: '#22C55E' }]}>
-                        {currency_symbol} {service.total_revenue.toFixed(2)}
+                        {currencySymbol} {service.total_revenue.toFixed(2)}
                       </Text>
                     </View>
                   </View>
@@ -546,8 +571,7 @@ export default function DashboardScreen() {
             )}
           </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-    </>
-  );
+        </ScrollView>
+      </SafeAreaView>
+    );
 }

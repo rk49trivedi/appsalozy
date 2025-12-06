@@ -15,6 +15,8 @@ export interface ApiResponse<T = any> {
   user?: T;
   access_token?: string;
   token_type?: string;
+  currency_symbol?: string;
+  currency_text?: string;
 }
 
 export interface ApiError {
@@ -174,10 +176,13 @@ class ApiClient {
 
   async logout(): Promise<void> {
     try {
+      // Try to call logout API - if it fails (e.g., token already invalid), that's okay
       await this.post('/logout');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Silently ignore logout API errors - token might already be invalid
+      // The important part is clearing the local token
     } finally {
+      // Always clear the local token, even if API call fails
       await this.removeToken();
     }
   }

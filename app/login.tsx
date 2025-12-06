@@ -6,8 +6,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { showToast } from '@/lib/toast';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Dimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
@@ -15,6 +15,31 @@ import tw from 'twrnc';
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
+  // Check if user is already logged in when this screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const checkAuth = async () => {
+        try {
+          const token = await apiClient.getStoredToken();
+          if (token) {
+            // User has token, verify it's valid
+            try {
+              await apiClient.getProfile();
+              // Token is valid, redirect to dashboard
+              router.replace('/(tabs)');
+            } catch {
+              // Token invalid, clear it (already cleared on logout)
+              // Stay on login page
+            }
+          }
+          // No token or invalid token - stay on login page
+        } catch (error) {
+          // On error, stay on login page
+        }
+      };
+      checkAuth();
+    }, [])
+  );
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 

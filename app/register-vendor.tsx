@@ -150,18 +150,18 @@ export default function RegisterVendorScreen() {
       const response = await apiClient.registerVendor(formData);
 
       if (response.success) {
-        showToast.success(
-          'Registration successful! We sent a verification email and notified the admin team. Please verify your email to continue.',
-          'Success',
-          { duration: 8000 }
-        );
+        const successMessage =
+          response.message ||
+          'Registration successful! Please check your email to verify your account.';
+
+        showToast.success(successMessage, 'Success', { duration: 8000 });
 
         // Navigate to login screen with contextual message after a short delay
         setTimeout(() => {
           router.replace({
             pathname: '/login',
             params: { 
-              message: 'Registration successful! Check your inbox to verify your email. We also notified the admin about your new vendor account.',
+              message: successMessage,
               messageType: 'success',
               verificationEmail: formData.email,
             },

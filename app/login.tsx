@@ -91,7 +91,8 @@ export default function LoginScreen() {
       
       if (response.access_token) {
         // Login successful - show success message and navigate
-        showToast.success('Login successful! Redirecting...', 'Welcome');
+        const successMessage = response.message || 'Login successful! Redirecting...';
+        showToast.success(successMessage, 'Welcome');
         
         // Small delay to show success message before navigation
         setTimeout(() => {
@@ -112,7 +113,9 @@ export default function LoginScreen() {
         setVerificationEmail(emailToUse);
         setShowResendForm(true);
         setBanner({
-          message: 'Please verify your email before signing in. Tap below to resend the verification link.',
+          message:
+            apiError.message ||
+            'Please verify your email before signing in. Tap below to resend the verification link.',
           type: 'info',
         });
         // Don't show toast here, the resend form will be visible

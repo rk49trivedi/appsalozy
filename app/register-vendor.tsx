@@ -1,4 +1,4 @@
-import { Button, Card, Input, Text } from '@/components/atoms';
+import { Button, Input, Text } from '@/components/atoms';
 import { EmailIcon, EyeIcon, EyeOffIcon, PasswordIcon } from '@/components/login-icons';
 import { Logo } from '@/components/logo';
 import { getThemeColors } from '@/constants/colors';
@@ -204,7 +204,7 @@ export default function RegisterVendorScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={tw`flex-1`}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <LinearGradient
           colors={colors.gradient}
@@ -213,30 +213,33 @@ export default function RegisterVendorScreen() {
           style={tw`flex-1`}
         >
           <ScrollView
-            contentContainerStyle={tw`flex-grow py-8`}
+            contentContainerStyle={tw`flex-grow pb-8`}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <View style={tw`flex-1 justify-center px-5`}>
+            <View style={tw`flex-1 justify-center px-6 py-12`}>
               {/* Logo Section */}
-              <Logo size={96} style={tw`mb-6`} />
+              <Logo size={120} style={tw`mb-4 self-center`} />
 
-              {/* Form Card */}
-              <Card style={tw`w-full`}>
-                <Text 
-                  size="xl" 
-                  weight="bold" 
-                  style={tw`mb-2 text-center`}
-                >
-                  Create Vendor Account
-                </Text>
-                <Text 
-                  size="sm" 
-                  variant="secondary" 
-                  style={tw`mb-6 text-center`}
-                >
-                  Start your business journey with our comprehensive salon management platform
-                </Text>
+              {/* Form Content */}
+              <View style={tw`w-full`}>
+                <View style={tw`mb-8`}>
+                  <Text 
+                    size="2xl" 
+                    weight="bold" 
+                    style={tw`mb-3 text-center`}
+                  >
+                    Create Vendor Account
+                  </Text>
+                  <Text 
+                    size="base" 
+                    variant="secondary" 
+                    style={tw`text-center`}
+                  >
+                    Start your business journey with our comprehensive salon management platform
+                  </Text>
+                </View>
 
                 {/* Name Input */}
                 <Input
@@ -412,7 +415,7 @@ export default function RegisterVendorScreen() {
                     </Text>
                   </Text>
                 </View>
-              </Card>
+              </View>
             </View>
           </ScrollView>
         </LinearGradient>

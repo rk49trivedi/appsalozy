@@ -1,4 +1,4 @@
-import { Button, Card, Input, Text } from '@/components/atoms';
+import { Button, Input, Text } from '@/components/atoms';
 import { EmailIcon, EyeIcon, EyeOffIcon, PasswordIcon } from '@/components/login-icons';
 import { Logo } from '@/components/logo';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
@@ -169,7 +169,7 @@ export default function LoginScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={tw`flex-1`}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <LinearGradient
           colors={colors.gradient}
@@ -178,16 +178,17 @@ export default function LoginScreen() {
           style={tw`flex-1`}
         >
           <ScrollView
-            contentContainerStyle={tw`flex-grow`}
+            contentContainerStyle={tw`flex-grow pb-8`}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <View style={tw`flex-1 justify-center px-5 py-8`}>
+            <View style={tw`flex-1 justify-center px-6 py-12`}>
               {/* Logo Section - Mobile Optimized */}
-              <Logo size={128} style={tw`mb-3`} />
+              <Logo size={120} style={tw`mb-4 self-center`} />
 
-              {/* Form Card - Full Mobile Width - Clean Design */}
-              <Card style={tw`w-full`}>
+              {/* Form Content */}
+              <View style={tw`w-full`}>
                 {/* Contextual banner from prior flows */}
                 {banner && (
                   <View style={[
@@ -350,7 +351,7 @@ export default function LoginScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </Card>
+              </View>
             </View>
           </ScrollView>
         </LinearGradient>

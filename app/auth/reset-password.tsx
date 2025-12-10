@@ -1,4 +1,4 @@
-import { Button, Card, Input, Text } from '@/components/atoms';
+import { Button, Input, Text } from '@/components/atoms';
 import { EmailIcon, EyeIcon, EyeOffIcon, PasswordIcon } from '@/components/login-icons';
 import { Logo } from '@/components/logo';
 import { getThemeColors } from '@/constants/colors';
@@ -148,7 +148,7 @@ export default function ResetPasswordScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={tw`flex-1`}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <LinearGradient
           colors={colors.gradient}
@@ -157,22 +157,23 @@ export default function ResetPasswordScreen() {
           style={tw`flex-1`}
         >
           <ScrollView
-            contentContainerStyle={tw`flex-grow`}
+            contentContainerStyle={tw`flex-grow pb-8`}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <View style={tw`flex-1 justify-center px-5 py-8`}>
+            <View style={tw`flex-1 justify-center px-6 py-12`}>
               {/* Logo Section */}
-              <Logo size={128} style={tw`mb-3`} />
+              <Logo size={120} style={tw`mb-4 self-center`} />
 
-              {/* Form Card */}
-              <Card style={tw`w-full`}>
+              {/* Form Content */}
+              <View style={tw`w-full`}>
                 {/* Header Section */}
-                <View style={tw`mb-6`}>
-                  <Text size="2xl" weight="bold" style={tw`mb-2`}>
+                <View style={tw`mb-8`}>
+                  <Text size="2xl" weight="bold" style={tw`mb-3 text-center`}>
                     Reset Password
                   </Text>
-                  <Text size="base" variant="secondary">
+                  <Text size="base" variant="secondary" style={tw`text-center`}>
                     Create a new password for your account
                   </Text>
                 </View>
@@ -292,7 +293,7 @@ export default function ResetPasswordScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </Card>
+              </View>
             </View>
           </ScrollView>
         </LinearGradient>

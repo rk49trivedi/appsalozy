@@ -1,4 +1,4 @@
-import { Button, Card, Input, Text } from '@/components/atoms';
+import { Button, Input, Text } from '@/components/atoms';
 import { EmailIcon } from '@/components/login-icons';
 import { Logo } from '@/components/logo';
 import { getThemeColors } from '@/constants/colors';
@@ -21,7 +21,6 @@ export default function ForgotPasswordScreen() {
   });
 
   const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -50,13 +49,23 @@ export default function ForgotPasswordScreen() {
       
       // All messages come from API - no hardcoded messages in mobile app
       if (response.success) {
-        setSuccess(true);
         showToast.success(
           response.message || 'Password reset link sent! Please check your email.',
           'Email Sent'
         );
+        
+        // Navigate back to login with success message
+        setTimeout(() => {
+          router.replace({
+            pathname: '/login',
+            params: {
+              message: response.message || 'Password reset link has been sent to your email address.',
+              messageType: 'success',
+            },
+          });
+        }, 1500);
       } else {
-        // API returned success: false
+        // API returned success: false - stay on page to show error
         showToast.error(
           response.message || 'Failed to send reset link. Please try again.',
           'Error'
@@ -64,6 +73,7 @@ export default function ForgotPasswordScreen() {
       }
     } catch (err: any) {
       // Handle API errors (404, 500, etc.) - all error messages come from API
+      // Stay on page to show error message
       const apiError = err as ApiError;
       const errorMessage = apiError.message || 'Failed to send reset link. Please try again.';
       showToast.error(errorMessage, 'Error');
@@ -79,7 +89,7 @@ export default function ForgotPasswordScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={tw`flex-1`}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <LinearGradient
           colors={colors.gradient}
@@ -88,40 +98,26 @@ export default function ForgotPasswordScreen() {
           style={tw`flex-1`}
         >
           <ScrollView
-            contentContainerStyle={tw`flex-grow`}
+            contentContainerStyle={tw`flex-grow pb-8`}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <View style={tw`flex-1 justify-center px-5 py-8`}>
+            <View style={tw`flex-1 justify-center px-6 py-12`}>
               {/* Logo Section */}
-              <Logo size={128} style={tw`mb-3`} />
+              <Logo size={120} style={tw`mb-4 self-center`} />
 
-              {/* Form Card */}
-              <Card style={tw`w-full`}>
+              {/* Form Content */}
+              <View style={tw`w-full`}>
                 {/* Header Section */}
-                <View style={tw`mb-6`}>
-                  <Text size="2xl" weight="bold" style={tw`mb-2`}>
+                <View style={tw`mb-8`}>
+                  <Text size="2xl" weight="bold" style={tw`mb-3 text-center`}>
                     Forgot Password?
                   </Text>
-                  <Text size="base" variant="secondary">
+                  <Text size="base" variant="secondary" style={tw`text-center`}>
                     Enter your email address and we'll send you a link to reset your password
                   </Text>
                 </View>
-
-                {/* Success Message */}
-                {success && (
-                  <View style={[
-                    tw`p-4 rounded-2xl mb-6`,
-                    { backgroundColor: isDark ? 'rgba(22, 163, 74, 0.15)' : 'rgba(240, 253, 244, 0.95)' }
-                  ]}>
-                    <Text size="base" weight="semibold" style={tw`mb-1`}>
-                      Check your email
-                    </Text>
-                    <Text size="sm" variant="secondary">
-                      We've sent a password reset link to {formData.email}. Please check your inbox and follow the instructions to reset your password.
-                    </Text>
-                  </View>
-                )}
 
                 {/* Email Input */}
                 <Input
@@ -134,18 +130,17 @@ export default function ForgotPasswordScreen() {
                   autoComplete="email"
                   autoCorrect={false}
                   leftIcon={<EmailIcon size={20} color={colors.placeholder} />}
-                  editable={!success}
                 />
 
                 {/* Submit Button */}
                 <Button
                   onPress={submitForm}
-                  disabled={processing || !formData.email || success}
+                  disabled={processing || !formData.email}
                   loading={processing}
                   fullWidth
                   style={tw`mb-6 mt-6`}
                 >
-                  {processing ? 'Sending...' : success ? 'Link Sent' : 'Send Reset Link'}
+                  {processing ? 'Sending...' : 'Send Reset Link'}
                 </Button>
 
                 {/* Back to Login Link */}
@@ -162,7 +157,7 @@ export default function ForgotPasswordScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </Card>
+              </View>
             </View>
           </ScrollView>
         </LinearGradient>

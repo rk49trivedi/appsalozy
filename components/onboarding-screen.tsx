@@ -1,19 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   Animated,
   Dimensions,
-  TouchableOpacity,
-  ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'expo-image';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -40,7 +40,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onFinish }) 
   const slides: Slide[] = [
     {
       id: 1,
-      title: 'Manage Appointments Effortlessly',
+      title: 'Effortless Appointments',
       desc: 'Streamline your booking process. Reduce no-shows with automated reminders and smart scheduling.',
       icon: 'event',
     },
@@ -96,109 +96,111 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onFinish }) 
   };
 
   return (
-    <View style={styles.container}>
-      {/* Background Image (Salon Interior) */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop' }}
-          style={styles.backgroundImage}
-          contentFit="cover"
-        />
-        <LinearGradient
-          colors={['rgba(0,0,0,0.4)', 'transparent']}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
-
-      {/* Top Badge */}
-      <View style={[styles.badgeContainer, { top: insets.top + 56 }]}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>SALOZY</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {/* Background Image (Salon Interior) */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop' }}
+            style={styles.backgroundImage}
+            contentFit="cover"
+          />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'transparent']}
+            style={StyleSheet.absoluteFill}
+          />
         </View>
-      </View>
 
-      {/* White Bottom Card */}
-      <View style={styles.cardContainer}>
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          style={styles.scrollView}
-          decelerationRate="fast"
-          snapToInterval={slideWidth}
-          snapToAlignment="start"
-        >
-          {slides.map((slide, index) => (
-            <View key={slide.id} style={[styles.slide, { width: slideWidth }]}>
-              {/* Icon Container */}
-              <Animated.View
-                style={[
-                  styles.iconContainer,
-                  {
-                    opacity: index === currentSlide ? fadeAnim : 0.6,
-                  },
-                ]}
-              >
-                <MaterialIcons name={slide.icon} size={32} color="#d5821d" />
-              </Animated.View>
-
-              {/* Text Content */}
-              <Animated.View
-                style={[
-                  styles.textContainer,
-                  {
-                    opacity: index === currentSlide ? fadeAnim : 0.6,
-                  },
-                ]}
-              >
-                <Text style={styles.title}>{slide.title}</Text>
-                <Text style={styles.desc}>{slide.desc}</Text>
-              </Animated.View>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Bottom Controls Row */}
-        <View style={styles.controlsContainer}>
-          {/* Skip Button */}
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
-
-          {/* Pagination Dots */}
-          <View style={styles.dotsContainer}>
-            {slides.map((_, idx) => (
-              <View
-                key={idx}
-                style={[
-                  styles.dot,
-                  currentSlide === idx ? styles.dotActive : styles.dotInactive,
-                ]}
-              />
-            ))}
+        {/* Top Badge */}
+        <View style={[styles.badgeContainer, { top: insets.top + 56 }]}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>SALOZY</Text>
           </View>
+        </View>
 
-          {/* Next Button */}
-          <TouchableOpacity
-            onPress={handleNext}
-            style={styles.nextButton}
-            activeOpacity={0.8}
+        {/* White Bottom Card */}
+        <View style={styles.cardContainer}>
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            style={styles.scrollView}
+            decelerationRate="fast"
+            snapToInterval={slideWidth}
+            snapToAlignment="start"
           >
-            <LinearGradient
-              colors={['#9a3412', '#d5821d']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.nextButtonGradient}
+            {slides.map((slide, index) => (
+              <View key={slide.id} style={[styles.slide, { width: slideWidth }]}>
+                {/* Icon Container */}
+                <Animated.View
+                  style={[
+                    styles.iconContainer,
+                    {
+                      opacity: index === currentSlide ? fadeAnim : 0.6,
+                    },
+                  ]}
+                >
+                  <MaterialIcons name={slide.icon} size={32} color="#d5821d" />
+                </Animated.View>
+
+                {/* Text Content */}
+                <Animated.View
+                  style={[
+                    styles.textContainer,
+                    {
+                      opacity: index === currentSlide ? fadeAnim : 0.6,
+                    },
+                  ]}
+                >
+                  <Text style={styles.title}>{slide.title}</Text>
+                  <Text style={styles.desc}>{slide.desc}</Text>
+                </Animated.View>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Bottom Controls Row */}
+          <View style={styles.controlsContainer}>
+            {/* Skip Button */}
+            <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+              <Text style={styles.skipText}>Skip</Text>
+            </TouchableOpacity>
+
+            {/* Pagination Dots */}
+            <View style={styles.dotsContainer}>
+              {slides.map((_, idx) => (
+                <View
+                  key={idx}
+                  style={[
+                    styles.dot,
+                    currentSlide === idx ? styles.dotActive : styles.dotInactive,
+                  ]}
+                />
+              ))}
+            </View>
+
+            {/* Next Button */}
+            <TouchableOpacity
+              onPress={handleNext}
+              style={styles.nextButton}
+              activeOpacity={0.8}
             >
-              <MaterialIcons name="chevron-right" size={28} color="#FFFFFF" />
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={['#9a3412', '#d5821d']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.nextButtonGradient}
+              >
+                <MaterialIcons name="chevron-right" size={28} color="#FFFFFF" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

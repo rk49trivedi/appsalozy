@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, G } from 'react-native-svg';
 import * as SplashScreen from 'expo-splash-screen';
+import React, { useEffect } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { G, Path } from 'react-native-svg';
 
 // Keep splash screen visible while we load
 SplashScreen.preventAutoHideAsync();
@@ -47,8 +48,10 @@ export const SalozySplash: React.FC<SalozySplashProps> = ({ onFinish }) => {
   const bounceValue3 = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Hide Expo splash screen
-    SplashScreen.hideAsync();
+    // Hide native splash screen immediately
+    SplashScreen.hideAsync().catch(() => {
+      // Ignore errors if already hidden
+    });
 
     // Start animations
     Animated.parallel([
@@ -171,137 +174,139 @@ export const SalozySplash: React.FC<SalozySplashProps> = ({ onFinish }) => {
   });
 
   return (
-    <View style={styles.container}>
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#1a1a1a', '#050505']}
-        style={StyleSheet.absoluteFill}
-      />
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {/* Background Gradient */}
+        <LinearGradient
+          colors={['#1a1a1a', '#050505']}
+          style={StyleSheet.absoluteFill}
+        />
 
-      <View style={styles.content}>
-        {/* Dashed Circle Container */}
-        <View style={styles.logoContainer}>
-          {/* Rotating Dashed Border - Outer */}
-          <Animated.View
-            style={[
-              styles.svgContainer,
-              { transform: [{ rotate: spin }] },
-            ]}
-          >
-            <Svg width={160} height={160} viewBox="0 0 160 160">
-              <Path
-                d="M 80 10 A 70 70 0 1 1 80 150"
-                fill="none"
-                stroke="rgba(213, 130, 29, 0.3)"
-                strokeWidth="2"
-                strokeDasharray="8 4"
-              />
-            </Svg>
-          </Animated.View>
-          {/* Rotating Dashed Border - Inner */}
-          <Animated.View
-            style={[
-              styles.svgContainerInner,
-              { transform: [{ rotate: spinReverse }] },
-            ]}
-          >
-            <Svg width={144} height={144} viewBox="0 0 144 144">
-              <Path
-                d="M 72 8 A 64 64 0 1 1 72 136"
-                fill="none"
-                stroke="rgba(213, 130, 29, 0.2)"
-                strokeWidth="2"
-                strokeDasharray="8 4"
-              />
-            </Svg>
-          </Animated.View>
+        <View style={styles.content}>
+          {/* Dashed Circle Container */}
+          <View style={styles.logoContainer}>
+            {/* Rotating Dashed Border - Outer */}
+            <Animated.View
+              style={[
+                styles.svgContainer,
+                { transform: [{ rotate: spin }] },
+              ]}
+            >
+              <Svg width={160} height={160} viewBox="0 0 160 160">
+                <Path
+                  d="M 80 10 A 70 70 0 1 1 80 150"
+                  fill="none"
+                  stroke="rgba(213, 130, 29, 0.3)"
+                  strokeWidth="2"
+                  strokeDasharray="8 4"
+                />
+              </Svg>
+            </Animated.View>
+            {/* Rotating Dashed Border - Inner */}
+            <Animated.View
+              style={[
+                styles.svgContainerInner,
+                { transform: [{ rotate: spinReverse }] },
+              ]}
+            >
+              <Svg width={144} height={144} viewBox="0 0 144 144">
+                <Path
+                  d="M 72 8 A 64 64 0 1 1 72 136"
+                  fill="none"
+                  stroke="rgba(213, 130, 29, 0.2)"
+                  strokeWidth="2"
+                  strokeDasharray="8 4"
+                />
+              </Svg>
+            </Animated.View>
 
-          {/* Logo */}
+            {/* Logo */}
+            <Animated.View
+              style={[
+                styles.logoWrapper,
+                {
+                  opacity: fadeInUpValue,
+                  transform: [
+                    {
+                      translateY: fadeInUpValue.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [20, 0],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <AppLogo width={70} height={85} />
+            </Animated.View>
+          </View>
+
+          {/* Text with Aclonica Font */}
           <Animated.View
             style={[
-              styles.logoWrapper,
+              styles.titleContainer,
               {
-                opacity: fadeInUpValue,
-                transform: [
-                  {
-                    translateY: fadeInUpValue.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
+                opacity: fadeInValue,
               },
             ]}
           >
-            <AppLogo width={70} height={85} />
+            <Text style={styles.title}>SALOZY</Text>
+          </Animated.View>
+
+          {/* Subtext with separators */}
+          <Animated.View
+            style={[
+              styles.subtitleContainer,
+              {
+                opacity: fadeInValue,
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={['transparent', '#9a3412']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.separator}
+            />
+            <Text style={styles.subtitle}>Salon Manager</Text>
+            <LinearGradient
+              colors={['#9a3412', 'transparent']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.separator}
+            />
           </Animated.View>
         </View>
 
-        {/* Text with Aclonica Font */}
-        <Animated.View
-          style={[
-            styles.titleContainer,
-            {
-              opacity: fadeInValue,
-            },
-          ]}
-        >
-          <Text style={styles.title}>SALOZY</Text>
-        </Animated.View>
-
-        {/* Subtext with separators */}
-        <Animated.View
-          style={[
-            styles.subtitleContainer,
-            {
-              opacity: fadeInValue,
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={['transparent', '#9a3412']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.separator}
+        {/* Bottom Dots Loader */}
+        <View style={styles.dotsContainer}>
+          <Animated.View
+            style={[
+              styles.dot,
+              {
+                transform: [{ translateY: translateY1 }],
+              },
+            ]}
           />
-          <Text style={styles.subtitle}>Salon Manager</Text>
-          <LinearGradient
-            colors={['#9a3412', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.separator}
+          <Animated.View
+            style={[
+              styles.dot,
+              {
+                transform: [{ translateY: translateY2 }],
+              },
+            ]}
           />
-        </Animated.View>
+          <Animated.View
+            style={[
+              styles.dot,
+              {
+                transform: [{ translateY: translateY3 }],
+              },
+            ]}
+          />
+        </View>
       </View>
-
-      {/* Bottom Dots Loader */}
-      <View style={styles.dotsContainer}>
-        <Animated.View
-          style={[
-            styles.dot,
-            {
-              transform: [{ translateY: translateY1 }],
-            },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.dot,
-            {
-              transform: [{ translateY: translateY2 }],
-            },
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.dot,
-            {
-              transform: [{ translateY: translateY3 }],
-            },
-          ]}
-        />
-      </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

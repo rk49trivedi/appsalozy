@@ -11,7 +11,7 @@ export const toastConfig = {
       style={{
         borderLeftColor: '#22C55E',
         backgroundColor: '#F0FDF4',
-        height: 60,
+        minHeight: 60,
         borderLeftWidth: 4,
         borderRadius: 8,
       }}
@@ -27,6 +27,8 @@ export const toastConfig = {
         fontSize: 13,
         color: '#15803D',
       }}
+      text1NumberOfLines={props.text1NumberOfLines ?? 3}
+      text2NumberOfLines={props.text2NumberOfLines ?? 6}
     />
   ),
 
@@ -36,7 +38,7 @@ export const toastConfig = {
       style={{
         borderLeftColor: '#EF4444',
         backgroundColor: '#FEF2F2',
-        height: 60,
+        minHeight: 60,
         borderLeftWidth: 4,
         borderRadius: 8,
       }}
@@ -52,6 +54,8 @@ export const toastConfig = {
         fontSize: 13,
         color: '#DC2626',
       }}
+      text1NumberOfLines={props.text1NumberOfLines ?? 3}
+      text2NumberOfLines={props.text2NumberOfLines ?? 6}
     />
   ),
 
@@ -61,7 +65,7 @@ export const toastConfig = {
       style={{
         borderLeftColor: '#3B82F6',
         backgroundColor: '#EFF6FF',
-        height: 60,
+        minHeight: 60,
         borderLeftWidth: 4,
         borderRadius: 8,
       }}
@@ -77,6 +81,8 @@ export const toastConfig = {
         fontSize: 13,
         color: '#2563EB',
       }}
+      text1NumberOfLines={props.text1NumberOfLines ?? 3}
+      text2NumberOfLines={props.text2NumberOfLines ?? 6}
     />
   ),
 };

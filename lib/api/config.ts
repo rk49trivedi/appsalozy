@@ -14,6 +14,9 @@ export const API_ENDPOINTS = {
   LOGIN: '/login',
   LOGOUT: '/logout',
   PROFILE: '/profile',
+  REGISTER_VENDOR: '/register-vendor',
+  VERIFY_EMAIL: '/verify-email',
+  RESEND_VERIFICATION_EMAIL: '/verify-email/resend',
   
   // Dashboard
   DASHBOARD: '/dashboard',

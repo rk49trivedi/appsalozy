@@ -102,6 +102,13 @@ class ApiClient {
           errors: data.errors,
           status: response.status,
         };
+        
+        // Add additional error data for email verification
+        if (data.email_verification_required) {
+          (error as any).email_verification_required = data.email_verification_required;
+          (error as any).email = data.email;
+        }
+        
         throw error;
       }
 
@@ -200,6 +207,28 @@ class ApiClient {
   // Get stored token
   async getStoredToken(): Promise<string | null> {
     return this.getToken();
+  }
+
+  // Vendor registration
+  async registerVendor(data: {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    company_name: string;
+    company_domain: string;
+  }): Promise<ApiResponse> {
+    return this.post('/register-vendor', data, false);
+  }
+
+  // Email verification
+  async verifyEmail(token: string, email: string): Promise<ApiResponse> {
+    return this.post('/verify-email', { token, email }, false);
+  }
+
+  // Resend verification email
+  async resendVerificationEmail(email: string): Promise<ApiResponse> {
+    return this.post('/verify-email/resend', { email }, false);
   }
 }
 

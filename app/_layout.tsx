@@ -1,21 +1,52 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
 import { GlobalSidebarProvider } from '@/components/global-sidebar';
+import { OnboardingScreen } from '@/components/onboarding-screen';
+import { SalozySplash } from '@/components/splash-screen';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { toastConfig } from '@/lib/toast-config';
+
+const ONBOARDING_COMPLETED_KEY = '@salozy:onboarding_completed';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
+  const [showSplash, setShowSplash] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
 
   useEffect(() => {
+    // Check if onboarding has been completed
+    const checkOnboardingStatus = async () => {
+      try {
+        const onboardingCompleted = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
+        if (onboardingCompleted === 'true') {
+          // Onboarding already completed, skip it
+          setShowOnboarding(false);
+        } else {
+          // Onboarding not completed, will show after splash
+          setShowOnboarding(true);
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        // On error, show onboarding to be safe
+        setShowOnboarding(true);
+      } finally {
+        setIsCheckingOnboarding(false);
+      }
+    };
+
+    checkOnboardingStatus();
+
     // Handle initial URL (app opened via deep link)
     Linking.getInitialURL().then((url) => {
       if (url) {
@@ -193,22 +224,60 @@ export default function RootLayout() {
     }
   };
 
+  const handleOnboardingFinish = async () => {
+    try {
+      // Mark onboarding as completed
+      await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
+      setShowOnboarding(false);
+    } catch (error) {
+      console.error('Error saving onboarding status:', error);
+      // Even if save fails, hide onboarding
+      setShowOnboarding(false);
+    }
+  };
+
+  // Show loading while checking onboarding status
+  if (isCheckingOnboarding) {
+    return (
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
+          <ActivityIndicator size="large" color="#d5821d" />
+        </View>
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <GlobalSidebarProvider>
-      <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="register-vendor" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/verify-email" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/reset-password" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="appointments" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-        <Toast config={toastConfig} />
+        {showSplash ? (
+          <View style={{ flex: 1 }}>
+            <SalozySplash onFinish={() => {
+              setShowSplash(false);
+              // Onboarding will be shown if not completed
+            }} />
+          </View>
+        ) : showOnboarding ? (
+          <View style={{ flex: 1 }}>
+            <OnboardingScreen onFinish={handleOnboardingFinish} />
+          </View>
+        ) : (
+          <>
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="register-vendor" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/verify-email" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/reset-password" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="appointments" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            </Stack>
+            <StatusBar style="auto" />
+            <Toast config={toastConfig} />
+          </>
+        )}
       </GlobalSidebarProvider>
     </ThemeProvider>
   );

@@ -1,16 +1,36 @@
-import { Button, Input, Text } from '@/components/atoms';
-import { EmailIcon } from '@/components/login-icons';
-import { Logo } from '@/components/logo';
 import { getThemeColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { showToast } from '@/lib/toast';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { G, Path } from 'react-native-svg';
 import tw from 'twrnc';
+
+// App Logo Component (SVG version matching login screen)
+const AppLogo = ({ width = 64, height = 75, color = '#d5821d' }: { width?: number; height?: number; color?: string }) => (
+  <Svg
+    width={width}
+    height={height}
+    viewBox="0 0 235 287"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <G>
+      <Path
+        fill={color}
+        d="m127.1-0.03l-106.23 106.22c-27 27-26.99 70.77 0 97.76l1.9 1.9c13.08 13.08 34.27 13.08 47.35 0l46.41-46.41-1.9-1.9c-13.07-13.07-34.27-13.07-47.34 0l59.81-59.81c26.99-27 26.99-70.77 0-97.76z"
+      />
+      <Path
+        fill="#9a3412"
+        d="m209.82 82.38l-1.9-1.9c-13.07-13.08-34.27-13.08-47.34 0l-47.69 47.68 1.9 1.9c13.08 13.08 34.27 13.08 47.35 0l-58.54 58.54c-27 27-27 70.77 0 97.76l106.22-106.22c27-27 27-70.77 0-97.76z"
+      />
+    </G>
+  </Svg>
+);
 
 export default function ForgotPasswordScreen() {
   const colorScheme = useColorScheme();
@@ -47,7 +67,6 @@ export default function ForgotPasswordScreen() {
     try {
       const response = await apiClient.forgotPassword(formData.email);
       
-      // All messages come from API - no hardcoded messages in mobile app
       if (response.success) {
         showToast.success(
           response.message || 'Password reset link sent! Please check your email.',
@@ -65,15 +84,12 @@ export default function ForgotPasswordScreen() {
           });
         }, 1500);
       } else {
-        // API returned success: false - stay on page to show error
         showToast.error(
           response.message || 'Failed to send reset link. Please try again.',
           'Error'
         );
       }
     } catch (err: any) {
-      // Handle API errors (404, 500, etc.) - all error messages come from API
-      // Stay on page to show error message
       const apiError = err as ApiError;
       const errorMessage = apiError.message || 'Failed to send reset link. Please try again.';
       showToast.error(errorMessage, 'Error');
@@ -91,78 +107,114 @@ export default function ForgotPasswordScreen() {
         style={tw`flex-1`}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <LinearGradient
-          colors={colors.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={tw`flex-1`}
-        >
+        <View style={[tw`flex-1 bg-stone-50`, { backgroundColor: '#FAFAF9' }]}>
           <ScrollView
             contentContainerStyle={tw`flex-grow pb-8`}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            <View style={tw`flex-1 justify-center px-6 py-12`}>
-              {/* Logo Section */}
-              <Logo size={120} style={tw`mb-4 self-center`} />
+            <View style={tw`flex-1 justify-center px-8 py-12`}>
+              {/* Logo & Header */}
+              <View style={tw`items-center mb-10`}>
+                <AppLogo width={64} height={75} />
+                <Text
+                  style={[
+                    tw`mt-6 text-2xl font-bold text-center`,
+                    { color: '#0C0A09' }
+                  ] as any}
+                >
+                  Forgot Password?
+                </Text>
+                <Text
+                  style={[
+                    tw`mt-2 text-sm text-center`,
+                    { color: '#78716C' }
+                  ] as any}
+                >
+                  Enter your email address and we'll send you a link to reset your password
+                </Text>
+              </View>
 
-              {/* Form Content */}
-              <View style={tw`w-full`}>
-                {/* Header Section */}
-                <View style={tw`mb-8`}>
-                  <Text size="2xl" weight="bold" style={tw`mb-3 text-center`}>
-                    Forgot Password?
-                  </Text>
-                  <Text size="base" variant="secondary" style={tw`text-center`}>
-                    Enter your email address and we'll send you a link to reset your password
-                  </Text>
-                </View>
-
+              {/* Form */}
+              <View>
                 {/* Email Input */}
-                <Input
-                  label="Email Address"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChangeText={(value) => handleChange('email', value)}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoCorrect={false}
-                  leftIcon={<EmailIcon size={20} color={colors.placeholder} />}
-                />
+                <View style={tw`mb-5`}>
+                  <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                    Email Address
+                  </Text>
+                  <View style={tw`relative`}>
+                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                      <MaterialIcons name="mail" size={18} color="#A8A29E" />
+                    </View>
+                    <TextInput
+                      style={[
+                        tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-4 text-sm`,
+                        {
+                          borderColor: '#E7E5E4',
+                          color: '#1C1917',
+                          fontSize: 14,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }
+                      ]}
+                      placeholder="hello@salozy.com"
+                      placeholderTextColor="#A8A29E"
+                      value={formData.email}
+                      onChangeText={(value) => handleChange('email', value)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
 
                 {/* Submit Button */}
-                <Button
+                <TouchableOpacity
                   onPress={submitForm}
                   disabled={processing || !formData.email}
-                  loading={processing}
-                  fullWidth
-                  style={tw`mb-6 mt-6`}
+                  style={[
+                    tw`w-full mt-4`,
+                    {
+                      opacity: processing || !formData.email ? 0.6 : 1,
+                    }
+                  ]}
+                  activeOpacity={0.8}
                 >
-                  {processing ? 'Sending...' : 'Send Reset Link'}
-                </Button>
-
-                {/* Back to Login Link */}
-                <View style={[
-                  tw`pt-6 border-t items-center`,
-                  { borderColor: colors.border }
-                ]}>
-                  <TouchableOpacity
-                    onPress={() => router.back()}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  <LinearGradient
+                    colors={['#9a3412', '#d5821d']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[tw`w-full py-4 rounded-2xl items-center justify-center`]}
                   >
-                    <Text size="base" variant="secondary" style={tw`text-center`}>
-                      ← Back to Login
+                    <Text style={[tw`font-bold text-sm`, { color: '#FFFFFF' }] as any}>
+                      {processing ? 'Sending...' : 'Send Reset Link'}
                     </Text>
-                  </TouchableOpacity>
-                </View>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
-        </LinearGradient>
+
+          {/* Footer */}
+          <View style={tw`py-8 items-center`}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={tw`flex-row items-center`}
+            >
+              <MaterialIcons name="arrow-back" size={16} color="#78716C" />
+              <Text style={[tw`text-xs ml-1`, { color: '#78716C' }] as any}>
+                Back to Login
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-

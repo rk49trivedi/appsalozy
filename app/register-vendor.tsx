@@ -1,56 +1,36 @@
-import { Button, Input, Text } from '@/components/atoms';
-import { EmailIcon, EyeIcon, EyeOffIcon, PasswordIcon } from '@/components/login-icons';
-import { Logo } from '@/components/logo';
 import { getThemeColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { showToast } from '@/lib/toast';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Dimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Path, Svg } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
 import tw from 'twrnc';
 
-const { width } = Dimensions.get('window');
-
-// Additional icons for registration form
-function UserIcon({ size = 20, color = '#9CA3AF' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+// App Logo Component (SVG version matching login screen)
+const AppLogo = ({ width = 64, height = 75, color = '#d5821d' }: { width?: number; height?: number; color?: string }) => (
+  <Svg
+    width={width}
+    height={height}
+    viewBox="0 0 235 287"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <G>
       <Path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        fill={color}
+        d="m127.1-0.03l-106.23 106.22c-27 27-26.99 70.77 0 97.76l1.9 1.9c13.08 13.08 34.27 13.08 47.35 0l46.41-46.41-1.9-1.9c-13.07-13.07-34.27-13.07-47.34 0l59.81-59.81c26.99-27 26.99-70.77 0-97.76z"
       />
-    </Svg>
-  );
-}
-
-function BuildingIcon({ size = 20, color = '#9CA3AF' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
       <Path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+        fill="#9a3412"
+        d="m209.82 82.38l-1.9-1.9c-13.07-13.08-34.27-13.08-47.34 0l-47.69 47.68 1.9 1.9c13.08 13.08 34.27 13.08 47.35 0l-58.54 58.54c-27 27-27 70.77 0 97.76l106.22-106.22c27-27 27-70.77 0-97.76z"
       />
-    </Svg>
-  );
-}
-
-function GlobeIcon({ size = 20, color = '#9CA3AF' }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-      <Path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-      />
-    </Svg>
-  );
-}
+    </G>
+  </Svg>
+);
 
 const CENTRAL_DOMAIN = 'salozy.com';
 
@@ -206,119 +186,217 @@ export default function RegisterVendorScreen() {
         style={tw`flex-1`}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <LinearGradient
-          colors={colors.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={tw`flex-1`}
-        >
+        <View style={[tw`flex-1 bg-stone-50`, { backgroundColor: '#FAFAF9' }]}>
           <ScrollView
             contentContainerStyle={tw`flex-grow pb-8`}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            <View style={tw`flex-1 justify-center px-6 py-12`}>
-              {/* Logo Section */}
-              <Logo size={120} style={tw`mb-4 self-center`} />
+            <View style={tw`flex-1 justify-center px-8 py-12`}>
+              {/* Logo & Header */}
+              <View style={tw`items-center mb-10`}>
+                <AppLogo width={64} height={75} />
+                <Text
+                  style={[
+                    tw`mt-6 text-2xl font-bold text-center`,
+                    { color: '#0C0A09' }
+                  ] as any}
+                >
+                  Create Vendor Account
+                </Text>
+                <Text
+                  style={[
+                    tw`mt-2 text-sm text-center`,
+                    { color: '#78716C' }
+                  ] as any}
+                >
+                  Start your business journey with our comprehensive salon management platform
+                </Text>
+              </View>
 
-              {/* Form Content */}
-              <View style={tw`w-full`}>
-                <View style={tw`mb-8`}>
-                  <Text 
-                    size="2xl" 
-                    weight="bold" 
-                    style={tw`mb-3 text-center`}
-                  >
-                    Create Vendor Account
+              {/* Form */}
+              <View>
+                {/* Name Input */}
+                <View style={tw`mb-5`}>
+                  <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                    Full Name
                   </Text>
-                  <Text 
-                    size="base" 
-                    variant="secondary" 
-                    style={tw`text-center`}
-                  >
-                    Start your business journey with our comprehensive salon management platform
-                  </Text>
+                  <View style={tw`relative`}>
+                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                      <MaterialIcons name="person" size={18} color="#A8A29E" />
+                    </View>
+                    <TextInput
+                      style={[
+                        tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-4 text-sm`,
+                        {
+                          borderColor: errors.name ? '#EF4444' : '#E7E5E4',
+                          color: '#1C1917',
+                          fontSize: 14,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }
+                      ]}
+                      placeholder="Enter your full name"
+                      placeholderTextColor="#A8A29E"
+                      value={formData.name}
+                      onChangeText={(value) => handleChange('name', value)}
+                      autoCapitalize="words"
+                      autoComplete="name"
+                      autoCorrect={false}
+                    />
+                  </View>
+                  {errors.name && (
+                    <Text style={[tw`text-xs mt-1 ml-1`, { color: '#EF4444' }] as any}>
+                      {errors.name}
+                    </Text>
+                  )}
                 </View>
 
-                {/* Name Input */}
-                <Input
-                  label="Full Name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChangeText={(value) => handleChange('name', value)}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  autoCorrect={false}
-                  leftIcon={<UserIcon size={20} color={colors.placeholder} />}
-                  error={errors.name}
-                />
-
                 {/* Email Input */}
-                <Input
-                  label="Email Address"
-                  placeholder="Enter your email address"
-                  value={formData.email}
-                  onChangeText={(value) => handleChange('email', value)}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoCorrect={false}
-                  leftIcon={<EmailIcon size={20} color={colors.placeholder} />}
-                  error={errors.email}
-                />
+                <View style={tw`mb-5`}>
+                  <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                    Email Address
+                  </Text>
+                  <View style={tw`relative`}>
+                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                      <MaterialIcons name="mail" size={18} color="#A8A29E" />
+                    </View>
+                    <TextInput
+                      style={[
+                        tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-4 text-sm`,
+                        {
+                          borderColor: errors.email ? '#EF4444' : '#E7E5E4',
+                          color: '#1C1917',
+                          fontSize: 14,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }
+                      ]}
+                      placeholder="hello@salozy.com"
+                      placeholderTextColor="#A8A29E"
+                      value={formData.email}
+                      onChangeText={(value) => handleChange('email', value)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      autoCorrect={false}
+                    />
+                  </View>
+                  {errors.email && (
+                    <Text style={[tw`text-xs mt-1 ml-1`, { color: '#EF4444' }] as any}>
+                      {errors.email}
+                    </Text>
+                  )}
+                </View>
 
                 {/* Password Input */}
-                <Input
-                  label="Password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChangeText={(value) => handleChange('password', value)}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  autoComplete="password-new"
-                  autoCorrect={false}
-                  leftIcon={<PasswordIcon size={20} color={colors.placeholder} />}
-                  rightIcon={
+                <View style={tw`mb-5`}>
+                  <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                    Password
+                  </Text>
+                  <View style={tw`relative`}>
+                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                      <MaterialIcons name="lock" size={18} color="#A8A29E" />
+                    </View>
+                    <TextInput
+                      style={[
+                        tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-11 text-sm`,
+                        {
+                          borderColor: errors.password ? '#EF4444' : '#E7E5E4',
+                          color: '#1C1917',
+                          fontSize: 14,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }
+                      ]}
+                      placeholder="••••••••"
+                      placeholderTextColor="#A8A29E"
+                      value={formData.password}
+                      onChangeText={(value) => handleChange('password', value)}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoComplete="password-new"
+                      autoCorrect={false}
+                    />
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
+                      style={tw`absolute right-4 top-0 bottom-0 justify-center z-10`}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       {showPassword ? (
-                        <EyeOffIcon size={20} color={colors.placeholder} />
+                        <MaterialIcons name="visibility-off" size={18} color="#A8A29E" />
                       ) : (
-                        <EyeIcon size={20} color={colors.placeholder} />
+                        <MaterialIcons name="visibility" size={18} color="#A8A29E" />
                       )}
                     </TouchableOpacity>
-                  }
-                  error={errors.password}
-                />
+                  </View>
+                  {errors.password && (
+                    <Text style={[tw`text-xs mt-1 ml-1`, { color: '#EF4444' }] as any}>
+                      {errors.password}
+                    </Text>
+                  )}
+                </View>
 
                 {/* Confirm Password Input */}
-                <Input
-                  label="Confirm Password"
-                  placeholder="Confirm your password"
-                  value={formData.password_confirmation}
-                  onChangeText={(value) => handleChange('password_confirmation', value)}
-                  secureTextEntry={!showPasswordConfirmation}
-                  autoCapitalize="none"
-                  autoComplete="password-new"
-                  autoCorrect={false}
-                  leftIcon={<PasswordIcon size={20} color={colors.placeholder} />}
-                  rightIcon={
+                <View style={tw`mb-5`}>
+                  <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                    Confirm Password
+                  </Text>
+                  <View style={tw`relative`}>
+                    <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                      <MaterialIcons name="lock" size={18} color="#A8A29E" />
+                    </View>
+                    <TextInput
+                      style={[
+                        tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-11 text-sm`,
+                        {
+                          borderColor: errors.password_confirmation ? '#EF4444' : '#E7E5E4',
+                          color: '#1C1917',
+                          fontSize: 14,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.05,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }
+                      ]}
+                      placeholder="••••••••"
+                      placeholderTextColor="#A8A29E"
+                      value={formData.password_confirmation}
+                      onChangeText={(value) => handleChange('password_confirmation', value)}
+                      secureTextEntry={!showPasswordConfirmation}
+                      autoCapitalize="none"
+                      autoComplete="password-new"
+                      autoCorrect={false}
+                    />
                     <TouchableOpacity
                       onPress={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
+                      style={tw`absolute right-4 top-0 bottom-0 justify-center z-10`}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       {showPasswordConfirmation ? (
-                        <EyeOffIcon size={20} color={colors.placeholder} />
+                        <MaterialIcons name="visibility-off" size={18} color="#A8A29E" />
                       ) : (
-                        <EyeIcon size={20} color={colors.placeholder} />
+                        <MaterialIcons name="visibility" size={18} color="#A8A29E" />
                       )}
                     </TouchableOpacity>
-                  }
-                  error={errors.password_confirmation}
-                />
+                  </View>
+                  {errors.password_confirmation && (
+                    <Text style={[tw`text-xs mt-1 ml-1`, { color: '#EF4444' }] as any}>
+                      {errors.password_confirmation}
+                    </Text>
+                  )}
+                </View>
 
                 {/* Business Information Section */}
                 <View style={[
@@ -326,62 +404,114 @@ export default function RegisterVendorScreen() {
                   { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.1)' : 'rgba(255, 247, 237, 0.8)' }
                 ]}>
                   <Text 
-                    size="lg" 
-                    weight="bold" 
-                    style={tw`mb-2`}
+                    style={[
+                      tw`text-lg font-bold mb-2`,
+                      { color: '#0C0A09' }
+                    ] as any}
                   >
                     Business Information
                   </Text>
                   <Text 
-                    size="sm" 
-                    variant="secondary" 
-                    style={tw`mb-4`}
+                    style={[
+                      tw`text-sm mb-4`,
+                      { color: '#78716C' }
+                    ] as any}
                   >
                     Please provide your business details
                   </Text>
 
                   {/* Company Name Input */}
-                  <Input
-                    label="Company Name"
-                    placeholder="Enter your company name"
-                    value={formData.company_name}
-                    onChangeText={(value) => handleChange('company_name', value)}
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    leftIcon={<BuildingIcon size={20} color={colors.placeholder} />}
-                    error={errors.company_name}
-                    containerStyle={tw`mb-4`}
-                  />
+                  <View style={tw`mb-4`}>
+                    <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                      Company Name
+                    </Text>
+                    <View style={tw`relative`}>
+                      <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                        <MaterialIcons name="business" size={18} color="#A8A29E" />
+                      </View>
+                      <TextInput
+                        style={[
+                          tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-4 text-sm`,
+                          {
+                            borderColor: errors.company_name ? '#EF4444' : '#E7E5E4',
+                            color: '#1C1917',
+                            fontSize: 14,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 2,
+                            elevation: 1,
+                          }
+                        ]}
+                        placeholder="Enter your company name"
+                        placeholderTextColor="#A8A29E"
+                        value={formData.company_name}
+                        onChangeText={(value) => handleChange('company_name', value)}
+                        autoCapitalize="words"
+                        autoCorrect={false}
+                      />
+                    </View>
+                    {errors.company_name && (
+                      <Text style={[tw`text-xs mt-1 ml-1`, { color: '#EF4444' }] as any}>
+                        {errors.company_name}
+                      </Text>
+                    )}
+                  </View>
 
                   {/* Company Domain Input */}
-                  <Input
-                    label="Company Domain"
-                    placeholder="Enter your domain"
-                    value={formData.company_domain}
-                    onChangeText={(value) => handleChange('company_domain', value)}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    leftIcon={<GlobeIcon size={20} color={colors.placeholder} />}
-                    error={errors.company_domain}
-                  />
+                  <View style={tw`mb-2`}>
+                    <Text style={[tw`text-xs font-semibold mb-1.5 ml-1`, { color: '#78716C' }] as any}>
+                      Company Domain
+                    </Text>
+                    <View style={tw`relative`}>
+                      <View style={tw`absolute left-4 top-0 bottom-0 justify-center z-10`}>
+                        <MaterialIcons name="language" size={18} color="#A8A29E" />
+                      </View>
+                      <TextInput
+                        style={[
+                          tw`w-full bg-white border rounded-xl py-3.5 pl-11 pr-4 text-sm`,
+                          {
+                            borderColor: errors.company_domain ? '#EF4444' : '#E7E5E4',
+                            color: '#1C1917',
+                            fontSize: 14,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 2,
+                            elevation: 1,
+                          }
+                        ]}
+                        placeholder="Enter your domain"
+                        placeholderTextColor="#A8A29E"
+                        value={formData.company_domain}
+                        onChangeText={(value) => handleChange('company_domain', value)}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    </View>
+                    {errors.company_domain && (
+                      <Text style={[tw`text-xs mt-1 ml-1`, { color: '#EF4444' }] as any}>
+                        {errors.company_domain}
+                      </Text>
+                    )}
+                  </View>
 
                   {/* Domain Preview */}
                   <View style={[
                     tw`p-3 rounded-xl mt-2`,
                     { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 246, 255, 0.8)' }
                   ]}>
-                    <Text size="sm" weight="semibold" style={tw`mb-1`}>
+                    <Text style={[tw`text-sm font-semibold mb-1`, { color: '#0C0A09' }] as any}>
                       Your subdomain:
                     </Text>
                     <Text
-                      size="sm"
-                      style={tw.style(
-                        'font-mono px-2 py-1 rounded',
+                      style={[
+                        tw`text-sm font-mono px-2 py-1 rounded`,
                         {
                           backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(219, 234, 254, 0.8)',
                           color: isDark ? '#93C5FD' : '#1E40AF',
-                        },
-                      )}
+                        }
+                      ] as any}
                     >
                       {fullDomain}
                     </Text>
@@ -389,38 +519,50 @@ export default function RegisterVendorScreen() {
                 </View>
 
                 {/* Submit Button */}
-                <Button
+                <TouchableOpacity
                   onPress={submitForm}
                   disabled={processing}
-                  loading={processing}
-                  fullWidth
-                  style={tw`mb-6`}
+                  style={[
+                    tw`w-full mt-4`,
+                    {
+                      opacity: processing ? 0.6 : 1,
+                    }
+                  ]}
+                  activeOpacity={0.8}
                 >
-                  {processing ? 'Creating Account...' : 'Create Vendor Account'}
-                </Button>
-
-                {/* Login Link */}
-                <View style={[
-                  tw`pt-6 border-t items-center`,
-                  { borderColor: colors.border }
-                ]}>
-                  <Text size="base" variant="secondary" style={tw`text-center`}>
-                    Already have an account?{' '}
-                    <Text 
-                      weight="bold" 
-                      variant="primaryBrand"
-                      onPress={() => router.replace('/login')}
-                    >
-                      Sign In
+                  <LinearGradient
+                    colors={['#9a3412', '#d5821d']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={tw`w-full py-4 rounded-2xl items-center justify-center`}
+                  >
+                    <Text style={[tw`font-bold text-sm`, { color: '#FFFFFF' }] as any}>
+                      {processing ? 'Creating Account...' : 'Create Vendor Account'}
                     </Text>
-                  </Text>
-                </View>
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
-        </LinearGradient>
+
+          {/* Footer */}
+          <View style={tw`py-8 items-center`}>
+            <View style={tw`flex-row items-center`}>
+              <Text style={[tw`text-xs text-center`, { color: '#78716C' }] as any}>
+                Already have an account?{' '}
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.replace('/login')}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={[tw`text-xs font-bold`, { color: '#9a3412' }] as any}>
+                  Sign In
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-

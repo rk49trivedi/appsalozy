@@ -9,7 +9,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Svg, Path } from 'react-native-svg';
+import { Path, Svg } from 'react-native-svg';
 import tw from 'twrnc';
 
 // Success Icon

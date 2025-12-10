@@ -3,8 +3,8 @@
  * Handles all API requests with authentication and error handling
  */
 
-import { API_CONFIG, getApiUrl } from './config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_CONFIG, getApiUrl } from './config';
 
 const TOKEN_KEY = '@salozy:access_token';
 

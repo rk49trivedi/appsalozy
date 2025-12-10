@@ -1,7 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as Linking from 'expo-linking';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';

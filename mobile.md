@@ -36,3 +36,6 @@ Before creating any new API, I will first verify if an existing API is already a
 
 These features should be gradually implemented in the mobile application following the structure and functionality already present in the web app.
 desgin reference from web application but if you can better recommandation layout as per mobile view than do your best
+
+Important note : all response message or error please get from rest api side not make hardcoded at mobile native app side so in 
+feature if i need to change success message or error message just have to change on rest api side

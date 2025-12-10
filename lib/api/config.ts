@@ -17,6 +17,8 @@ export const API_ENDPOINTS = {
   REGISTER_VENDOR: '/register-vendor',
   VERIFY_EMAIL: '/verify-email',
   RESEND_VERIFICATION_EMAIL: '/verify-email/resend',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   
   // Dashboard
   DASHBOARD: '/dashboard',

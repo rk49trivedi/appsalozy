@@ -230,6 +230,21 @@ class ApiClient {
   async resendVerificationEmail(email: string): Promise<ApiResponse> {
     return this.post('/verify-email/resend', { email }, false);
   }
+
+  // Forgot password
+  async forgotPassword(email: string): Promise<ApiResponse> {
+    return this.post('/forgot-password', { email }, false);
+  }
+
+  // Reset password
+  async resetPassword(data: {
+    token: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+  }): Promise<ApiResponse> {
+    return this.post('/reset-password', data, false);
+  }
 }
 
 export const apiClient = new ApiClient();

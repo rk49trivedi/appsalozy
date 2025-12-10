@@ -70,11 +70,14 @@ export default function VerifyEmailScreen() {
           // Show success toast
           showToast.success('Email verified successfully!', 'Success');
 
-          // Navigate to login after a delay
+          // Navigate to login after a delay with success message from API
           setTimeout(() => {
             router.replace({
               pathname: '/login',
-              params: { message: 'Email verified successfully! You can now log in.' },
+              params: { 
+                message: response.message || 'Email verified successfully! You can now log in.',
+                messageType: 'success',
+              },
             });
           }, 2000);
         } else {

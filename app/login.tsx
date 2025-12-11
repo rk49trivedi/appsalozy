@@ -1,5 +1,5 @@
 import { Button, Input, Text } from '@/components/atoms';
-import { EmailIcon } from '@/components/login-icons';
+import { EmailIcon } from '@/components/atoms';
 import { getThemeColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';

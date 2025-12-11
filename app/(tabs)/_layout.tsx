@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 
-import { AuthGuard } from '@/components/auth-guard';
-import { HapticTab } from '@/components/haptic-tab';
-import { DashboardIcon } from '@/components/sidebar-icons';
+import { AuthGuard } from '@/components/organisms';
+import { HapticTab } from '@/components/utils';
+import { DashboardIcon } from '@/components/atoms';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';

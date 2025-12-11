@@ -4,8 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import tw from 'twrnc';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
-import { Text } from './atoms';
-import { Button } from './atoms';
+import { Text, Button } from '../atoms';
 
 interface DatePickerProps {
   value?: string; // YYYY-MM-DD format

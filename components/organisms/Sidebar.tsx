@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
-import { Logo } from './logo';
+import { Logo } from '../atoms/Logo';
 import {
     AppointmentsIcon,
     BranchIcon,
@@ -20,7 +20,7 @@ import {
     SliderIcon,
     StaffIcon,
     SubscriptionsIcon,
-} from './sidebar-icons';
+} from '../atoms/icons/sidebar-icons';
 
 interface SidebarProps {
   visible: boolean;

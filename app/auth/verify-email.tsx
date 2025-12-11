@@ -1,5 +1,5 @@
 import { Button, Card, Text } from '@/components/atoms';
-import { Logo } from '@/components/logo';
+import { Logo } from '@/components/atoms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';

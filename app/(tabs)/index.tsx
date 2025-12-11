@@ -3,9 +3,9 @@ import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndic
 import tw from 'twrnc';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSidebar } from '@/components/global-sidebar';
+import { useSidebar } from '@/components/organisms';
 import { apiClient, ApiError } from '@/lib/api/client';
-import { RevenueIcon, AppointmentsIcon, CustomersIcon, SeatsIcon } from '@/components/dashboard-icons';
+import { RevenueIcon, AppointmentsIcon, CustomersIcon, SeatsIcon } from '@/components/atoms';
 import { SalozyColors } from '@/constants/colors';
 import { showToast } from '@/lib/toast';
 import { API_ENDPOINTS } from '@/lib/api/config';

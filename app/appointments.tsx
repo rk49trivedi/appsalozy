@@ -1,7 +1,7 @@
 import { Badge, Card, Input, Text } from '@/components/atoms';
-import { AppointmentsIcon } from '@/components/dashboard-icons';
-import { DatePicker } from '@/components/DatePicker';
-import { useSidebar } from '@/components/global-sidebar';
+import { AppointmentsIcon } from '@/components/atoms';
+import { DatePicker } from '@/components/molecules';
+import { useSidebar } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';

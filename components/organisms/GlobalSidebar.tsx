@@ -2,7 +2,7 @@ import { apiClient } from '@/lib/api/client';
 import { router } from 'expo-router';
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { Alert } from 'react-native';
-import { Sidebar } from './sidebar';
+import { Sidebar } from './Sidebar';
 
 interface SidebarContextType {
   sidebarVisible: boolean;

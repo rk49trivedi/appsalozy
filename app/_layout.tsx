@@ -8,9 +8,7 @@ import { View, ActivityIndicator } from 'react-native';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
-import { GlobalSidebarProvider } from '@/components/global-sidebar';
-import { OnboardingScreen } from '@/components/onboarding-screen';
-import { SalozySplash } from '@/components/splash-screen';
+import { GlobalSidebarProvider, OnboardingScreen, SplashScreen } from '@/components/organisms';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { toastConfig } from '@/lib/toast-config';
 
@@ -252,7 +250,7 @@ export default function RootLayout() {
       <GlobalSidebarProvider>
         {showSplash ? (
           <View style={{ flex: 1 }}>
-            <SalozySplash onFinish={() => {
+            <SplashScreen onFinish={() => {
               setShowSplash(false);
               // Onboarding will be shown if not completed
             }} />

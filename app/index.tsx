@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
-import { router, useFocusEffect } from 'expo-router';
-import { View, ActivityIndicator } from 'react-native';
-import { apiClient } from '@/lib/api/client';
 import { SalozyColors } from '@/constants/colors';
-import LoginScreen from './login';
+import { apiClient } from '@/lib/api/client';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import tw from 'twrnc';
+import LoginScreen from './login';
 
 /**
  * Root index route

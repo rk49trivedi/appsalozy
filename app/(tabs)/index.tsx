@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
-import tw from 'twrnc';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppointmentsIcon, CustomersIcon, RevenueIcon, SeatsIcon } from '@/components/atoms';
 import { useSidebar } from '@/components/organisms';
-import { apiClient, ApiError } from '@/lib/api/client';
-import { RevenueIcon, AppointmentsIcon, CustomersIcon, SeatsIcon } from '@/components/atoms';
 import { SalozyColors } from '@/constants/colors';
-import { showToast } from '@/lib/toast';
-import { API_ENDPOINTS } from '@/lib/api/config';
 import { useAuth } from '@/hooks/use-auth';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { apiClient, ApiError } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/config';
+import { showToast } from '@/lib/toast';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import tw from 'twrnc';
 
 interface DashboardData {
   appointmentStats: {
@@ -349,8 +349,7 @@ export default function DashboardScreen() {
                 {dashboardData.seatStats.total}
               </Text>
               <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Seats</Text>
-              <Text style={[tw`text-sm font-semibold mt-1`, { color: '#F97316' }]}>
-                {dashboardData.seatStats.available} available • {dashboardData.seatStats.occupied} occupied
+              <Text style={[tw`text-sm font-semibold mt-1`, { color: '#F97316' }]}> available 
               </Text>
             </View>
           </View>

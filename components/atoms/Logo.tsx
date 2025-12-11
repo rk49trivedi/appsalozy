@@ -11,7 +11,7 @@ export function Logo({ size = 128, style }: LogoProps) {
   return (
     <View style={[tw`items-center justify-center`, style]}>
       <Image
-        source={require('@/assets/images/logo.png')}
+        source={require('@/assets/images/favicon.png')}
         style={{ width: size, height: size }}
         contentFit="contain"
       />

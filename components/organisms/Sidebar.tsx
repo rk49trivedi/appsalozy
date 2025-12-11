@@ -1,25 +1,18 @@
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Animated, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { apiClient } from '@/lib/api/client';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, usePathname } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { Logo } from '../atoms/Logo';
 import {
-    AppointmentsIcon,
-    BranchIcon,
-    CouponIcon,
-    CustomersIcon,
-    DashboardIcon,
-    GalleryIcon,
-    LogoutIcon,
-    PlanIcon,
-    PurchasedPlansIcon,
-    SeatsIcon,
-    ServicesIcon,
-    SliderIcon,
-    StaffIcon,
-    SubscriptionsIcon,
+  AppointmentsIcon,
+  CustomersIcon,
+  DashboardIcon,
+  LogoutIcon,
 } from '../atoms/icons/sidebar-icons';
 
 interface SidebarProps {
@@ -29,9 +22,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const slideAnim = useRef(new Animated.Value(-280)).current; // Start off-screen to the left
+  const pathname = usePathname();
+  const slideAnim = useRef(new Animated.Value(-300)).current; // Start off-screen to the left
+  const [userName, setUserName] = useState<string>('Guest');
+  const [branchName, setBranchName] = useState<string>('Salozy');
+  const [userImage, setUserImage] = useState<string>('');
 
   useEffect(() => {
     if (visible) {
@@ -43,38 +38,55 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
       }).start();
     } else {
       Animated.timing(slideAnim, {
-        toValue: -280,
+        toValue: -300,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
   }, [visible, slideAnim]);
 
-  const bgColor = isDark ? '#1F2937' : '#FFFFFF';
-  const textPrimary = isDark ? '#FFFFFF' : '#111827';
-  const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
-  const borderColor = isDark ? '#374151' : '#E5E7EB';
-  const iconColor = isDark ? '#9CA3AF' : '#4B5563';
-  const activeIconColor = '#9A3412';
+  // Fetch user profile when sidebar opens
+  useEffect(() => {
+    if (visible) {
+      const fetchUserProfile = async () => {
+        try {
+          const response = await apiClient.getProfile();
+          // Profile response can have data.user or user or data with name
+          const user = response.data?.user || response.data || response.user;
+          if (user?.name) {
+            setUserName(user.name);
+          }
+
+          if(user?.branch?.name) {
+            setBranchName(user.branch.name);
+          }
+
+          // Check multiple possible field names for profile image
+          const profileImage = user?.profile || user?.logo || '';
+          if (profileImage && profileImage.trim() !== '') {
+            setUserImage(profileImage);
+          } else {
+            setUserImage(''); // Ensure it's empty if no image
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          // Keep default name on error
+          setUserImage(''); // Reset image on error
+        }
+      };
+      fetchUserProfile();
+    }
+  }, [visible]);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon, route: '/(tabs)' },
-    { id: 'appointments', label: 'All Appointments', Icon: AppointmentsIcon, route: '/appointments' },
-    { id: 'my-appointments', label: 'My Appointments', Icon: AppointmentsIcon, route: null },
-    { id: 'seats', label: 'Seats', Icon: SeatsIcon, route: null },
-    { id: 'services', label: 'Services', Icon: ServicesIcon, route: null },
-    { id: 'staff', label: 'Staff', Icon: StaffIcon, route: null },
-    { id: 'customers', label: 'Customers', Icon: CustomersIcon, route: null },
-    { id: 'plans', label: 'Plan', Icon: PlanIcon, route: null },
-    { id: 'purchased-plans', label: 'Purchased Plans', Icon: PurchasedPlansIcon, route: null },
-    { id: 'subscriptions', label: 'My Subscriptions', Icon: SubscriptionsIcon, route: null },
-  ];
-
-  const settingsItems = [
-    { id: 'branch', label: 'Manage Branch', Icon: BranchIcon, route: null },
-    { id: 'coupon', label: 'Manage Coupon', Icon: CouponIcon, route: null },
-    { id: 'gallery', label: 'Gallery', Icon: GalleryIcon, route: null },
-    { id: 'slider', label: 'Slider', Icon: SliderIcon, route: null },
+    { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon, iconName: 'dashboard', route: '/(tabs)', active: pathname === '/(tabs)' || pathname === '/' },
+    { id: 'appointments', label: 'Appointments', Icon: AppointmentsIcon, iconName: 'event', route: '/appointments', active: pathname === '/appointments' },
+    { id: 'customers', label: 'Clients', Icon: CustomersIcon, iconName: 'people', route: null, active: false },
+    { id: 'services', label: 'Services', Icon: null, iconName: 'content-cut', route: null, active: false },
+    { id: 'staff', label: 'Staff Management', Icon: null, iconName: 'work', route: null, active: false },
+    { id: 'finances', label: 'Finances', Icon: null, iconName: 'attach-money', route: null, active: false },
+    { id: 'settings', label: 'Settings', Icon: null, iconName: 'settings', route: null, active: false },
+    { id: 'support', label: 'Support', Icon: null, iconName: 'help-outline', route: null, active: false },
   ];
 
   const handleMenuItemPress = (item: { route: string | null }) => {
@@ -87,6 +99,26 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
     }
   };
 
+  // Generate consistent background color from userName
+  const getAvatarColor = (name: string): string => {
+    const colors = [
+      '#9a3412', '#d5821d', '#dc2626', '#ea580c', '#f97316',
+      '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6',
+      '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6',
+      '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444'
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const getInitials = (name: string): string => {
+    if (!name || name.trim() === '') return 'G';
+    return name.trim().charAt(0).toUpperCase();
+  };
+
   if (!visible) return null;
 
   return (
@@ -96,103 +128,153 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={tw`flex-1`}>
+      <View style={StyleSheet.absoluteFill}>
+        <BlurView
+          intensity={100}
+          tint="dark"
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0, 0, 0, 0.1)' }]} />
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+        
         {/* Sidebar - Slides from left to right */}
         <Animated.View
           style={[
-            tw`absolute left-0 top-0 bottom-0 w-[280px] z-50`,
+            tw`absolute left-0 top-0 bottom-0 w-[80%] max-w-[300px] z-50`,
             {
               transform: [{ translateX: slideAnim }],
             },
           ]}
         >
-          <SafeAreaView
-            style={[
-              tw`flex-1`,
-              { backgroundColor: bgColor }
-            ]}
-            edges={['top', 'bottom', 'left']}
-          >
-            {/* Header */}
-            <View style={[
-              tw`px-4  border-b flex-row items-center justify-between`,
-              { borderColor }
-            ]}>
-              <Logo size={100} />
+          <View style={tw`flex-1 bg-white shadow-2xl`}>
+            {/* Header with Dark Gradient */}
+            <LinearGradient
+              colors={['#1a1a1a', '#2d2d2d']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={tw`p-6 relative overflow-hidden pt-10`}
+            >
+              {/* Logo in background with opacity */}
+              <View style={[tw`absolute top-5 right-0 p-4`, { opacity: 0.1 }]}>
+                <Logo size={100} />
+              </View>
+              
+              {/* Close Button */}
               <TouchableOpacity
                 onPress={onClose}
-                style={tw`p-2`}
+                style={tw`absolute top-10 right-4 p-1.5 bg-[#1a1a1a] rounded-full`}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text style={[tw`text-2xl`, { color: textPrimary }]}>✕</Text>
+                <MaterialIcons name="close" size={20} color="white" />
               </TouchableOpacity>
-            </View>
+
+              {/* Profile Section */}
+              <View style={tw`relative z-10 flex-row items-center mt-4`}>
+                <View style={tw`w-14 h-14 rounded-full border-2 border-[#d5821d] mr-4 overflow-hidden`}>
+                  {userImage && userImage.trim() !== '' ? (
+                    <Image
+                      source={{ uri: userImage }}
+                      style={tw`w-full h-full`}
+                      contentFit="cover"
+                      onError={() => {
+                        // If image fails to load, clear it to show fallback
+                        setUserImage('');
+                      }}
+                    />
+                  ) : (
+                    <View 
+                      style={[
+                        tw`w-full h-full items-center justify-center`,
+                        { backgroundColor: getAvatarColor(userName), minHeight: 56, minWidth: 56 }
+                      ]}
+                    >
+                      <Text style={tw`text-white text-xl font-bold`}>
+                        {getInitials(userName)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View>
+                  <Text style={tw`text-lg font-bold text-white leading-tight max-w-[150px]`} numberOfLines={1}>
+                    {userName}
+                  </Text>
+                  <Text style={tw`text-xs text-[#d5821d] font-medium`}>
+                    {branchName}
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
 
             {/* Menu Items */}
             <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
-              <View style={tw`py-2`}>
+              <View style={tw`py-4 px-3`}>
                 {menuItems.map((item) => (
                   <TouchableOpacity
                     key={item.id}
                     onPress={() => handleMenuItemPress(item)}
                     style={[
-                      tw`flex-row items-center px-4 py-4 mx-2 rounded-xl mb-1`,
-                      { backgroundColor: 'transparent' }
+                      tw`flex-row items-center px-4 py-3 rounded-xl mb-1`,
+                      item.active
+                        ? { backgroundColor: '#FFF7ED' }
+                        : {}
                     ]}
                     activeOpacity={0.7}
                   >
-                    <View style={tw`w-6 h-6 items-center justify-center mr-3`}>
-                      <item.Icon size={24} color={iconColor} />
+                    <View style={tw`w-5 h-5 items-center justify-center mr-4`}>
+                      {item.Icon ? (
+                        <item.Icon 
+                          size={20} 
+                          color={item.active ? '#9a3412' : '#78716c'} 
+                        />
+                      ) : (
+                        <MaterialIcons 
+                          name={item.iconName as any} 
+                          size={20} 
+                          color={item.active ? '#9a3412' : '#78716c'} 
+                        />
+                      )}
                     </View>
-                    <Text style={[tw`text-base font-medium flex-1`, { color: textPrimary }]}>
+                    <Text
+                      style={[
+                        tw`text-sm font-medium flex-1`,
+                        item.active
+                          ? { color: '#9a3412', fontWeight: 'bold' }
+                          : { color: '#78716c' }
+                      ]}
+                    >
                       {item.label}
                     </Text>
+                    {item.active && (
+                      <View style={tw`w-1.5 h-1.5 rounded-full bg-[#9a3412]`} />
+                    )}
                   </TouchableOpacity>
                 ))}
-
-                {/* Settings Section */}
-                <View style={[tw`mt-4 pt-4 border-t mx-4`, { borderColor }]}>
-                  <Text style={[tw`text-xs font-bold uppercase mb-2 px-4`, { color: textSecondary }]}>
-                    Settings
-                  </Text>
-                  {settingsItems.map((item) => (
-                    <TouchableOpacity
-                      key={item.id}
-                      onPress={() => handleMenuItemPress(item)}
-                      style={tw`flex-row items-center px-4 py-4 mx-2 rounded-xl mb-1`}
-                      activeOpacity={0.7}
-                    >
-                      <View style={tw`w-6 h-6 items-center justify-center mr-3`}>
-                        <item.Icon size={20} color={iconColor} />
-                      </View>
-                      <Text style={[tw`text-base font-medium flex-1`, { color: textPrimary }]}>
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Logout Button */}
-                <View style={[tw`mt-4 pt-4 border-t mx-4`, { borderColor }]}>
-                  <TouchableOpacity
-                    onPress={onLogout}
-                    style={[
-                      tw`flex-row items-center px-4 py-4 mx-2 rounded-xl`,
-                      { backgroundColor: '#EF4444' + '20' }
-                    ]}
-                    activeOpacity={0.7}
-                  >
-                    <View style={tw`w-6 h-6 items-center justify-center mr-3`}>
-                      <LogoutIcon size={20} color="#EF4444" />
-                    </View>
-                    <Text style={[tw`text-base font-semibold flex-1`, { color: '#EF4444' }]}>
-                      Logout
-                    </Text>
-                  </TouchableOpacity>
-                </View>
               </View>
             </ScrollView>
-          </SafeAreaView>
+
+            {/* Footer */}
+            <View style={tw`p-4 border-t border-stone-100`}>
+              <TouchableOpacity
+                onPress={onLogout}
+                style={tw`flex-row items-center px-4 py-3 rounded-xl`}
+                activeOpacity={0.7}
+              >
+                <View style={tw`mr-3`}>
+                  <LogoutIcon size={20} color="#EF4444" />
+                </View>
+                <Text style={tw`text-sm font-medium text-red-500 flex-1`}>
+                  Log Out
+                </Text>
+              </TouchableOpacity>
+              <Text style={tw`text-center text-[10px] text-stone-300 mt-4`}>
+                Salozy App v1.2.0
+              </Text>
+            </View>
+          </View>
         </Animated.View>
       </View>
     </Modal>

@@ -26,6 +26,10 @@ export const API_ENDPOINTS = {
   // Appointments
   APPOINTMENTS: '/appointments',
   APPOINTMENT_BY_ID: (id: string | number) => `/appointments/${id}`,
+  APPOINTMENT_CREATE: '/appointments',
+  APPOINTMENT_UPDATE: (id: string | number) => `/appointments/${id}`,
+  APPOINTMENT_DELETE: (id: string | number) => `/appointments/${id}`,
+  APPOINTMENT_FORM_DATA: '/appointments/form-data',
   
   // Services
   SERVICES: '/services',

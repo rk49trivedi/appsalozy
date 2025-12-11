@@ -1,5 +1,4 @@
-import { Badge, Card, Input, Text } from '@/components/atoms';
-import { AppointmentsIcon } from '@/components/atoms';
+import { AppointmentsIcon, Badge, Card, Input, Text } from '@/components/atoms';
 import { DatePicker } from '@/components/molecules';
 import { useSidebar } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
@@ -336,6 +335,18 @@ export default function AppointmentsScreen() {
             {appointments.length.toString()} appointment{appointments.length !== 1 ? 's' : ''}
           </Text>
         </View>
+        <TouchableOpacity
+          onPress={() => router.push('/appointments/create')}
+          style={[
+            tw`px-4 py-2 rounded-xl`,
+            { backgroundColor: SalozyColors.primary.DEFAULT }
+          ]}
+          activeOpacity={0.8}
+        >
+          <Text size="sm" weight="bold" style={{ color: '#FFFFFF' }}>
+            + Create
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -756,8 +767,7 @@ export default function AppointmentsScreen() {
                       </View>
                       <TouchableOpacity
                         onPress={() => {
-                          // Navigate to appointment details (to be implemented)
-                          // router.push(`/appointments/${appointment.id}`);
+                          router.push(`/appointments/${appointment.id}`);
                         }}
                         style={[
                           tw`px-5 py-3 rounded-xl`,

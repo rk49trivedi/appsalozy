@@ -3,8 +3,7 @@ import React from 'react';
 
 import { AuthGuard } from '@/components/organisms';
 import { HapticTab } from '@/components/utils';
-import { DashboardIcon } from '@/components/atoms';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { AppointmentsIcon, CustomersIcon, DashboardIcon } from '@/components/atoms';
 import { SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -26,29 +25,58 @@ export default function TabLayout() {
     <AuthGuard>
     <Tabs
       screenOptions={{
-          tabBarActiveTintColor: SalozyColors.primary.DEFAULT,
-          tabBarInactiveTintColor: colorScheme === 'dark' ? '#9CA3AF' : '#6B7280',
+        tabBarActiveTintColor: SalozyColors.primary.DEFAULT,
+        tabBarInactiveTintColor:
+          colorScheme === 'dark' ? '#9CA3AF' : '#6B7280',
         headerShown: false,
         tabBarButton: HapticTab,
-          tabBarStyle: {
-            backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#FFFFFF',
-            borderTopColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
-          },
-      }}>
+        tabBarStyle: {
+          backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#FFFFFF',
+          borderTopColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
+        },
+      }}
+    >
+      {/* Left tab: Appointments list (routes to root /appointments) */}
+      <Tabs.Screen
+        name="appointmentsTab"
+        options={{
+          title: 'Appointments',
+          // Tell Expo Router this tab should open the root /appointments route
+          href: '/appointments',
+          tabBarIcon: ({ color, focused }) => (
+            <AppointmentsIcon
+              size={24}
+              color={focused ? SalozyColors.primary.DEFAULT : color}
+            />
+          ),
+        }}
+      />
+
+      {/* Center tab: Dashboard (home) */}
       <Tabs.Screen
         name="index"
         options={{
-            title: 'Dashboard',
-            tabBarIcon: ({ color, focused }) => (
-              <DashboardIcon size={24} color={focused ? SalozyColors.primary.DEFAULT : color} />
-            ),
+          title: 'Dashboard',
+          tabBarIcon: ({ color, focused }) => (
+            <DashboardIcon
+              size={26}
+              color={focused ? SalozyColors.primary.DEFAULT : color}
+            />
+          ),
         }}
       />
+
+      {/* Right tab: Profile / account */}
       <Tabs.Screen
-        name="explore"
+        name="profile"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <CustomersIcon
+              size={24}
+              color={focused ? SalozyColors.primary.DEFAULT : color}
+            />
+          ),
         }}
       />
     </Tabs>

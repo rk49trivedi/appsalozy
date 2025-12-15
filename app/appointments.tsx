@@ -5,10 +5,20 @@ import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
+import { API_ENDPOINTS } from '@/lib/api/config';
 import { showToast } from '@/lib/toast';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 
@@ -60,6 +70,11 @@ interface Appointment {
   }>;
 }
 
+interface SeatOption {
+  id: number;
+  name: string;
+}
+
 interface AppointmentsResponse {
   success?: boolean;
   data?: {
@@ -89,6 +104,14 @@ export default function AppointmentsScreen() {
   const [dateFilter, setDateFilter] = useState<string>(''); // Date filter
   const [showFilters, setShowFilters] = useState(true); // Collapsible filters
   const [filterAnimation] = useState(new Animated.Value(1)); // Animation for filter section
+
+  // Quick approve modal state
+  const [approveModalVisible, setApproveModalVisible] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<Appointment | null>(null);
+  const [seatOptions, setSeatOptions] = useState<SeatOption[]>([]);
+  const [seatLoading, setSeatLoading] = useState(false);
+  const [selectedSeatId, setSelectedSeatId] = useState<number | null>(null);
+  const [approving, setApproving] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -313,58 +336,206 @@ export default function AppointmentsScreen() {
     );
   }
 
+  const openApproveModal = async (appointment: Appointment) => {
+    setApproveTarget(appointment);
+    setSelectedSeatId(null);
+    setApproveModalVisible(true);
+
+    if (seatOptions.length === 0) {
+      try {
+        setSeatLoading(true);
+        const response = await apiClient.get<any>(API_ENDPOINTS.APPOINTMENT_FORM_DATA);
+        if (response.success && response.data?.seats) {
+          setSeatOptions(response.data.seats);
+        }
+      } catch (err: any) {
+        const apiError = err as ApiError;
+        showToast.error(apiError.message || 'Failed to load seats', 'Error');
+      } finally {
+        setSeatLoading(false);
+      }
+    }
+  };
+
+  const closeApproveModal = () => {
+    setApproveModalVisible(false);
+    setApproveTarget(null);
+    setSelectedSeatId(null);
+  };
+
+  const handleApprove = async () => {
+    if (!approveTarget || !selectedSeatId) {
+      showToast.error('Please select a seat to approve', 'Validation Error');
+      return;
+    }
+
+    try {
+      setApproving(true);
+
+      // Build services payload from appointment_services or services
+      let servicesPayload: Array<{ id: number }> = [];
+      if (approveTarget.appointment_services && approveTarget.appointment_services.length > 0) {
+        servicesPayload = approveTarget.appointment_services
+          .filter((s) => s && s.service_id)
+          .map((s) => ({ id: s.service_id }));
+      } else if (approveTarget.services && approveTarget.services.length > 0) {
+        servicesPayload = approveTarget.services
+          .filter((s) => s && s.id)
+          .map((s) => ({ id: s.id }));
+      }
+
+      if (servicesPayload.length === 0) {
+        showToast.error('No services found for this appointment', 'Error');
+        setApproving(false);
+        return;
+      }
+
+      const rawTime = approveTarget.appointment_time || '';
+      const timeValue =
+        rawTime.length >= 5 ? rawTime.slice(0, 5) : rawTime;
+
+      const payload: any = {
+        user_id: approveTarget.user.id,
+        appointment_date: approveTarget.appointment_date,
+        appointment_time: timeValue,
+        services: servicesPayload,
+        status: 'pending',
+        seat_id: selectedSeatId,
+        notes: approveTarget.notes || null,
+        staff_id: null,
+      };
+
+      const response = await apiClient.put(
+        API_ENDPOINTS.APPOINTMENT_UPDATE(approveTarget.id),
+        payload,
+      );
+
+      if (response.success) {
+        showToast.success(
+          response.message || 'Appointment approved successfully',
+          'Success',
+        );
+        closeApproveModal();
+        // Refresh list to reflect new status
+        fetchAppointments(1, statusFilter, dateFilter);
+      } else {
+        showToast.error(
+          response.message || 'Failed to approve appointment',
+          'Error',
+        );
+      }
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      showToast.error(apiError.message || 'Failed to approve appointment', 'Error');
+    } finally {
+      setApproving(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={[tw`flex-1`, { backgroundColor: colors.background }]} edges={['top']}>
-      {/* Header */}
-      <View style={tw`px-4 pt-4 pb-2 flex-row justify-between items-center`}>
-        <TouchableOpacity
-          onPress={openSidebar}
-          style={[
-            tw`p-2 rounded-xl`,
-            { backgroundColor: colors.secondaryBg }
-          ]}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Text style={tw`text-2xl`}>☰</Text>
-        </TouchableOpacity>
-        <View style={tw`flex-1 ml-4`}>
-          <Text size="2xl" weight="bold" variant="primary">
+    <SafeAreaView
+      style={[tw`flex-1`, { backgroundColor: colors.background }]}
+      edges={['top']}
+    >
+      {/* Modern header with gradient background */}
+      <LinearGradient
+        colors={['#111827', '#1F2937']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={tw`px-4 pt-5 pb-6 rounded-b-3xl`}
+      >
+        <View style={tw`flex-row items-center justify-between`}>
+          <TouchableOpacity
+            onPress={openSidebar}
+            style={tw`w-10 h-10 rounded-full items-center justify-center`}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={{ fontSize: 24, color: '#F9FAFB' }}>☰</Text>
+          </TouchableOpacity>
+
+          <View
+            style={tw`px-3 py-1 rounded-full flex-row items-center`}
+          >
+            <View
+              style={[
+                tw`w-2 h-2 rounded-full mr-2`,
+                { backgroundColor: SalozyColors.primary.DEFAULT },
+              ]}
+            />
+            <Text size="xs" weight="semibold" style={{ color: '#E5E7EB' }}>
+              Appointments Overview
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => router.push('/appointments/create')}
+            style={[
+              tw`px-4 py-2 rounded-full`,
+              { backgroundColor: SalozyColors.primary.DEFAULT },
+            ]}
+            activeOpacity={0.8}
+          >
+            <Text
+              size="sm"
+              weight="bold"
+              style={{ color: '#FFFFFF' }}
+            >
+              + New
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={tw`mt-4`}>
+          <Text
+            size="xs"
+            variant="secondary"
+            style={{ color: '#9CA3AF' }}
+          >
+            Today
+          </Text>
+          <Text
+            size="2xl"
+            weight="bold"
+            style={{ color: '#F9FAFB', marginTop: 4 }}
+          >
             All Appointments
           </Text>
-          <Text size="sm" style={tw`mt-1`} variant="secondary">
-            {appointments.length.toString()} appointment{appointments.length !== 1 ? 's' : ''}
+          <Text
+            size="sm"
+            style={{ color: '#9CA3AF', marginTop: 4 }}
+          >
+            {appointments.length.toString()} appointment
+            {appointments.length !== 1 ? 's' : ''} scheduled
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => router.push('/appointments/create')}
-          style={[
-            tw`px-4 py-2 rounded-xl`,
-            { backgroundColor: SalozyColors.primary.DEFAULT }
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text size="sm" weight="bold" style={{ color: '#FFFFFF' }}>
-            + Create
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <ScrollView
         style={tw`flex-1`}
         contentContainerStyle={tw`pb-4`}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={SalozyColors.primary.DEFAULT} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={SalozyColors.primary.DEFAULT}
+          />
+        }
         onScrollEndDrag={(e) => {
-          const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+          const { layoutMeasurement, contentOffset, contentSize } =
+            e.nativeEvent;
           const paddingToBottom = 20;
-          if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+          if (
+            layoutMeasurement.height + contentOffset.y >=
+            contentSize.height - paddingToBottom
+          ) {
             loadMore();
           }
         }}
         scrollEventThrottle={400}
       >
-        {/* Search and Filter Section */}
-        <View style={tw`px-4 mt-4`}>
-          <Card style={tw`p-4`}>
+        {/* Search and Filter Section (more compact) */}
+        <View style={tw`px-4 mt-3`}>
+          <Card style={tw`p-3 rounded-2xl`}>
             {/* Filter Header - Collapsible */}
             <TouchableOpacity
               onPress={() => {
@@ -543,78 +714,117 @@ export default function AppointmentsScreen() {
               
               const statusConfig = getStatusColor(displayStatus);
               return (
-                <Card key={appointment.id} style={tw`p-5 overflow-hidden`}>
-                  {/* Status Indicator Bar */}
-                  <View style={[
-                    tw`absolute top-0 left-0 right-0 h-1`,
-                    { backgroundColor: statusConfig.text }
-                  ]} />
-
-                  {/* Header Row */}
+                <Card
+                  key={appointment.id}
+                  style={tw`p-5 overflow-hidden rounded-2xl`}
+                >
+                  {/* Top pill + avatar */}
                   <View style={tw`flex-row justify-between items-start mb-4`}>
-                    <View style={tw`flex-1`}>
-                      <View style={tw`flex-row items-center mb-2`}>
-                        <View style={[
+                    <View style={tw`flex-row flex-1 items-center`}>
+                      <View
+                        style={[
                           tw`w-12 h-12 rounded-full items-center justify-center mr-3`,
-                          { backgroundColor: statusConfig.bg }
-                        ]}>
-                          <AppointmentsIcon size={24} color={statusConfig.text} />
-                        </View>
-                        <View style={tw`flex-1`}>
-                          <Text size="lg" weight="bold" variant="primary" style={tw`mb-1`}>
-                            {String(appointment.user?.name || 'Unknown User')}
-                          </Text>
-                          {appointment.user?.email && (
-                            <Text size="xs" variant="tertiary" style={tw`mb-1`}>
-                              {String(appointment.user.email)}
-                            </Text>
+                          { backgroundColor: statusConfig.bg },
+                        ]}
+                      >
+                        <AppointmentsIcon
+                          size={24}
+                          color={statusConfig.text}
+                        />
+                      </View>
+                      <View style={tw`flex-1`}>
+                        <Text
+                          size="lg"
+                          weight="bold"
+                          variant="primary"
+                          style={tw`mb-1`}
+                        >
+                          {String(
+                            appointment.user?.name || 'Unknown User',
                           )}
-                          {appointment.user?.phone && (
-                            <Text size="xs" variant="tertiary" style={tw`mb-1`}>
-                              {String(appointment.user.phone)}
-                            </Text>
-                          )}
-                          <View style={tw`flex-row items-center gap-2 mt-1`}>
-                            <Text size="xs" variant="tertiary">
-                              #{String(appointment.ticket_number || 'N/A')}
-                            </Text>
-                            {appointment.branch && (
-                              <>
-                                <Text size="xs" variant="tertiary">•</Text>
-                                <Text size="xs" variant="tertiary">{String(appointment.branch.name || 'N/A')}</Text>
-                              </>
+                        </Text>
+                        <View style={tw`flex-row items-center flex-wrap`}>
+                          <Text size="xs" variant="tertiary">
+                            #{String(
+                              appointment.ticket_number || 'N/A',
                             )}
-                          </View>
+                          </Text>
+                          {appointment.branch && (
+                            <Text
+                              size="xs"
+                              variant="tertiary"
+                              style={tw`ml-2`}
+                            >
+                              • {String(appointment.branch.name || 'N/A')}
+                            </Text>
+                          )}
                         </View>
                       </View>
                     </View>
                     <Badge variant={getStatusVariant(displayStatus)}>
                       {(() => {
-                        // Match web app: if pending with seat/staff, show "Approved", otherwise format status
-                        if (appointment.status === 'pending' && hasSeatOrStaff) {
+                        if (
+                          appointment.status === 'pending' &&
+                          hasSeatOrStaff
+                        ) {
                           return 'Approved';
                         }
-                        return String(appointment.status || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        return String(appointment.status || '')
+                          .replace('_', ' ')
+                          .replace(/\b\w/g, (l) => l.toUpperCase());
                       })()}
                     </Badge>
                   </View>
 
-                  {/* Date and Time - Enhanced Design */}
-                  <View style={[
-                    tw`flex-row items-center mb-4 p-3 rounded-xl`,
-                    { backgroundColor: colors.secondaryBg }
-                  ]}>
-                    <View style={tw`flex-1 items-center`}>
-                      <Text size="xs" variant="secondary" style={tw`mb-1`}>Date</Text>
-                      <Text size="base" weight="bold" variant="primary">
-                        {String(formatDate(appointment.appointment_date) || 'N/A')}
+                  {/* Date and Time chips */}
+                  <View
+                    style={[
+                      tw`flex-row items-center mb-4 p-3 rounded-2xl`,
+                      { backgroundColor: colors.secondaryBg },
+                    ]}
+                  >
+                    <View style={tw`flex-1`}>
+                      <Text
+                        size="xs"
+                        variant="secondary"
+                        style={tw`mb-1`}
+                      >
+                        Date
+                      </Text>
+                      <Text
+                        size="sm"
+                        weight="semibold"
+                        variant="primary"
+                      >
+                        {String(
+                          formatDate(appointment.appointment_date) ||
+                            'N/A',
+                        )}
                       </Text>
                     </View>
-                    <View style={[tw`w-px h-8`, { backgroundColor: colors.border }]} />
-                    <View style={tw`flex-1 items-center`}>
-                      <Text size="xs" variant="secondary" style={tw`mb-1`}>Time</Text>
-                      <Text size="base" weight="bold" variant="primary">
-                        {String(formatTime(appointment.appointment_time) || 'N/A')}
+                    <View
+                      style={[
+                        tw`w-px h-8 mx-3`,
+                        { backgroundColor: colors.border },
+                      ]}
+                    />
+                    <View style={tw`flex-1`}>
+                      <Text
+                        size="xs"
+                        variant="secondary"
+                        style={tw`mb-1`}
+                      >
+                        Time
+                      </Text>
+                      <Text
+                        size="sm"
+                        weight="semibold"
+                        variant="primary"
+                      >
+                        {String(
+                          formatTime(appointment.appointment_time) ||
+                            'N/A',
+                        )}
                       </Text>
                     </View>
                   </View>
@@ -640,8 +850,8 @@ export default function AppointmentsScreen() {
                                 : '0.00';
                               
                               return (
-                                <View 
-                                  key={`apt-service-${aptService.id || index}`} 
+                                <View
+                                  key={`apt-service-${aptService.id || index}`}
                                   style={[
                                     tw`flex-row justify-between items-center p-3 rounded-xl`,
                                     { backgroundColor: colors.secondaryBg }
@@ -683,8 +893,8 @@ export default function AppointmentsScreen() {
                               })();
                               
                               return (
-                                <View 
-                                  key={`service-${service.id || index}`} 
+                                <View
+                                  key={`service-${service.id || index}`}
                                   style={[
                                     tw`flex-row justify-between items-center p-3 rounded-xl`,
                                     { backgroundColor: colors.secondaryBg }
@@ -765,20 +975,43 @@ export default function AppointmentsScreen() {
                           );
                         })()}
                       </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          router.push(`/appointments/${appointment.id}`);
-                        }}
-                        style={[
-                          tw`px-5 py-3 rounded-xl`,
-                          { backgroundColor: SalozyColors.primary.DEFAULT }
-                        ]}
-                        activeOpacity={0.8}
-                      >
-                        <Text size="sm" weight="bold" style={{ color: '#FFFFFF' }}>
-                          Details
-                        </Text>
-                      </TouchableOpacity>
+                      <View style={tw`flex-row gap-2`}>
+                        {displayStatus === 'pending' && !hasSeatOrStaff && (
+                          <TouchableOpacity
+                            onPress={() => openApproveModal(appointment)}
+                            style={[
+                              tw`px-4 py-3 rounded-xl border`,
+                              { borderColor: SalozyColors.primary.DEFAULT },
+                            ]}
+                            activeOpacity={0.8}
+                          >
+                            <Text
+                              size="sm"
+                              weight="semibold"
+                              style={{
+                                color: SalozyColors.primary.DEFAULT,
+                                textAlign: 'center',
+                              }}
+                            >
+                              Approve
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                          onPress={() => {
+                            router.push(`/appointments/${appointment.id}`);
+                          }}
+                          style={[
+                            tw`px-5 py-3 rounded-xl`,
+                            { backgroundColor: SalozyColors.primary.DEFAULT },
+                          ]}
+                          activeOpacity={0.8}
+                        >
+                          <Text size="sm" weight="bold" style={{ color: '#FFFFFF' }}>
+                            Details
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                     {appointment.notes && (
                       <View style={[
@@ -825,6 +1058,178 @@ export default function AppointmentsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Quick Approve Modal */}
+      <Modal
+        visible={approveModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={closeApproveModal}
+      >
+        <SafeAreaView style={tw`flex-1 justify-end bg-black/40`} edges={['bottom']}>
+          <View
+            style={[
+              tw`rounded-t-3xl px-5 pt-4 pb-6`,
+              { backgroundColor: colors.background },
+            ]}
+          >
+            <View style={tw`items-center mb-3`}>
+              <View
+                style={tw`w-10 h-1.5 rounded-full bg-gray-300 mb-3`}
+              />
+              <Text size="lg" weight="bold" variant="primary">
+                Approve Appointment
+              </Text>
+              {approveTarget && (
+                <Text size="sm" variant="secondary" style={tw`mt-1`}>
+                  {approveTarget.user?.name} • #{approveTarget.ticket_number}
+                </Text>
+              )}
+            </View>
+
+            {approveTarget && (
+              <View
+                style={[
+                  tw`flex-row items-center mb-4 p-3 rounded-2xl`,
+                  { backgroundColor: colors.secondaryBg },
+                ]}
+              >
+                <View style={tw`flex-1`}>
+                  <Text size="xs" variant="secondary">
+                    Date
+                  </Text>
+                  <Text size="sm" weight="semibold" variant="primary">
+                    {formatDate(approveTarget.appointment_date)}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    tw`w-px h-8 mx-3`,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+                <View style={tw`flex-1`}>
+                  <Text size="xs" variant="secondary">
+                    Time
+                  </Text>
+                  <Text size="sm" weight="semibold" variant="primary">
+                    {formatTime(approveTarget.appointment_time)}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            <Text
+              size="sm"
+              weight="semibold"
+              variant="secondary"
+              style={tw`mb-2`}
+            >
+              Select Seat
+            </Text>
+
+            {seatLoading ? (
+              <View style={tw`py-4 items-center`}>
+                <ActivityIndicator
+                  size="small"
+                  color={SalozyColors.primary.DEFAULT}
+                />
+              </View>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={tw`flex-row gap-2 mb-4`}
+              >
+                {seatOptions.map((seat) => (
+                  <TouchableOpacity
+                    key={seat.id}
+                    onPress={() => setSelectedSeatId(seat.id)}
+                    style={[
+                      tw`px-4 py-2 rounded-full border`,
+                      {
+                        borderColor:
+                          selectedSeatId === seat.id
+                            ? SalozyColors.primary.DEFAULT
+                            : colors.border,
+                        backgroundColor:
+                          selectedSeatId === seat.id
+                            ? SalozyColors.primary.DEFAULT
+                            : colors.secondaryBg,
+                      },
+                    ]}
+                  >
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      style={{
+                        color:
+                          selectedSeatId === seat.id
+                            ? '#FFFFFF'
+                            : colors.textPrimary,
+                      }}
+                    >
+                      {seat.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                {seatOptions.length === 0 && !seatLoading && (
+                  <View style={tw`py-2`}>
+                    <Text size="sm" variant="secondary">
+                      No available seats found.
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            )}
+
+            <View style={tw`flex-row gap-3 mt-2`}>
+              <TouchableOpacity
+                onPress={closeApproveModal}
+                style={[
+                  tw`flex-1 px-4 py-3 rounded-xl border`,
+                  { borderColor: colors.border },
+                ]}
+                disabled={approving}
+              >
+                <Text
+                  size="sm"
+                  weight="semibold"
+                  variant="secondary"
+                  style={{ textAlign: 'center' }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleApprove}
+                disabled={approving || !selectedSeatId}
+                style={[
+                  tw`flex-1 px-4 py-3 rounded-xl`,
+                  {
+                    backgroundColor:
+                      approving || !selectedSeatId
+                        ? colors.secondaryBg
+                        : SalozyColors.primary.DEFAULT,
+                  },
+                ]}
+              >
+                {approving ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text
+                    size="sm"
+                    weight="bold"
+                    style={{ color: '#FFFFFF', textAlign: 'center' }}
+                  >
+                    Approve & Notify
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

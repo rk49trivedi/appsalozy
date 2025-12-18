@@ -1,22 +1,21 @@
-import { AppointmentsIcon, Badge, Card, Text } from '@/components/atoms';
-import { useSidebar } from '@/components/organisms';
+import { AppointmentsIcon, Badge, Text } from '@/components/atoms';
+import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import { showToast } from '@/lib/toast';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  RefreshControl,
-  ScrollView,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
@@ -73,16 +72,20 @@ interface SeatOption {
 export default function AppointmentDetailScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { openSidebar } = useSidebar();
   const { isAuthenticated, isChecking } = useAuth(true);
   const colors = getThemeColors(isDark);
   const { id } = useLocalSearchParams<{ id: string }>();
+  
+  const bgColor = isDark ? '#111827' : '#F9FAFB';
+  const cardBg = isDark ? '#1F2937' : '#FFFFFF';
+  const textPrimary = isDark ? '#FFFFFF' : '#111827';
+  const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
+  const borderColor = isDark ? '#374151' : '#E5E7EB';
   const [appointment, setAppointment] = useState<AppointmentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Quick approve state
   const [approveModalVisible, setApproveModalVisible] = useState(false);
   const [seatOptions, setSeatOptions] = useState<SeatOption[]>([]);
   const [seatLoading, setSeatLoading] = useState(false);
@@ -152,7 +155,7 @@ export default function AppointmentDetailScreen() {
               
               if (response.success) {
                 showToast.success(response.message || 'Appointment deleted successfully', 'Success');
-                router.replace('/appointments');
+                router.replace('/(tabs)/appointments');
               } else {
                 showToast.error(response.message || 'Failed to delete appointment', 'Error');
               }
@@ -404,85 +407,14 @@ export default function AppointmentDetailScreen() {
 
   return (
     <SafeAreaView
-      style={[tw`flex-1`, { backgroundColor: colors.background }]}
+      style={[tw`flex-1`, { backgroundColor: bgColor }]}
       edges={['top']}
     >
-      {/* Modern hero header */}
-      <LinearGradient
-        colors={['#111827', '#1F2937']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={tw`px-4 pt-5 pb-6 rounded-b-3xl`}
-      >
-        <View style={tw`flex-row items-center justify-between`}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[
-              tw`w-10 h-10 rounded-full items-center justify-center`,
-              { backgroundColor: 'rgba(31,41,55,0.9)' },
-            ]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={[tw`text-xl`, { color: '#F9FAFB' }]}>←</Text>
-          </TouchableOpacity>
-
-          <View style={tw`flex-1 ml-4`}>
-            <Text
-              size="xs"
-              variant="secondary"
-              style={{ color: '#9CA3AF' }}
-            >
-              Appointment
-            </Text>
-            <Text
-              size="2xl"
-              weight="bold"
-              style={{ color: '#F9FAFB', marginTop: 4 }}
-            >
-              #{appointment.ticket_number}
-            </Text>
-          </View>
-        </View>
-
-        <View style={tw`mt-4 flex-row items-center justify-between`}>
-          <View style={tw`flex-row items-center`}>
-            <View
-              style={[
-                tw`w-11 h-11 rounded-full items-center justify-center mr-3`,
-                { backgroundColor: statusConfig.bg },
-              ]}
-            >
-              <AppointmentsIcon
-                size={24}
-                color={statusConfig.text}
-              />
-            </View>
-            <View>
-              <Text
-                size="lg"
-                weight="bold"
-                style={{ color: '#F9FAFB' }}
-              >
-                {appointment.user?.name || 'Unknown User'}
-              </Text>
-              <Text
-                size="xs"
-                style={{ color: '#9CA3AF', marginTop: 2 }}
-              >
-                {appointment.user?.email || 'No email'}
-              </Text>
-            </View>
-          </View>
-
-          <Badge variant={getStatusVariant(displayStatus)}>
-            {displayStatus === 'pending' && hasSeatOrStaff
-              ? 'Approved'
-              : String(displayStatus || '')
-                  .replace('_', ' ')
-                  .replace(/\b\w/g, (l) => l.toUpperCase())}
-          </Badge>
-        </View>
-      </LinearGradient>
+      <GlobalHeader
+        title={`#${appointment.ticket_number}`}
+        subtitle={appointment.user?.name || 'Unknown User'}
+        showBackButton={true}
+      />
 
       <ScrollView
         style={tw`flex-1`}
@@ -495,33 +427,73 @@ export default function AppointmentDetailScreen() {
           />
         }
       >
-        <View style={tw`px-4 mt-4 gap-4`}>
-          {/* Customer Information */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+        <View style={tw`px-4 mt-2 gap-3`}>
+          <View style={[
+            tw`rounded-2xl p-4`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <View style={tw`flex-row items-center justify-between`}>
+              <View style={tw`flex-row items-center`}>
+                <View
+                  style={[
+                    tw`w-12 h-12 rounded-full items-center justify-center mr-3`,
+                    { backgroundColor: statusConfig.bg },
+                  ]}
+                >
+                  <AppointmentsIcon
+                    size={24}
+                    color={statusConfig.text}
+                  />
+                </View>
+                <View>
+                  <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
+                    {appointment.user?.name || 'Unknown User'}
+                  </Text>
+                  <Text style={[tw`text-sm`, { color: textSecondary }]}>
+                    {appointment.user?.email || 'No email'}
+                  </Text>
+                </View>
+              </View>
+              <Badge variant={getStatusVariant(displayStatus)}>
+                {displayStatus === 'pending' && hasSeatOrStaff
+                  ? 'Approved'
+                  : String(displayStatus || '')
+                      .replace('_', ' ')
+                      .replace(/\b\w/g, (l) => l.toUpperCase())}
+              </Badge>
+            </View>
+          </View>
+
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Customer Information
             </Text>
             <View style={tw`gap-3`}>
               <View style={tw`flex-row justify-between`}>
-                <Text variant="secondary">Name:</Text>
-                <Text variant="primary" weight="semibold">{appointment.user?.name || 'N/A'}</Text>
+                <Text style={{ color: textSecondary }}>Name:</Text>
+                <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.user?.name || 'N/A'}</Text>
               </View>
               <View style={tw`flex-row justify-between`}>
-                <Text variant="secondary">Email:</Text>
-                <Text variant="primary" weight="semibold">{appointment.user?.email || 'N/A'}</Text>
+                <Text style={{ color: textSecondary }}>Email:</Text>
+                <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.user?.email || 'N/A'}</Text>
               </View>
               {appointment.user?.phone && (
                 <View style={tw`flex-row justify-between`}>
-                  <Text variant="secondary">Phone:</Text>
-                  <Text variant="primary" weight="semibold">{appointment.user.phone}</Text>
+                  <Text style={{ color: textSecondary }}>Phone:</Text>
+                  <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.user.phone}</Text>
                 </View>
               )}
             </View>
-          </Card>
+          </View>
 
-          {/* Appointment Details */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Appointment Details
             </Text>
             <View style={tw`gap-3`}>
@@ -545,20 +517,22 @@ export default function AppointmentDetailScreen() {
               </View>
               {appointment.branch && (
                 <View style={tw`flex-row justify-between`}>
-                  <Text variant="secondary">Branch:</Text>
-                  <Text variant="primary" weight="semibold">{appointment.branch.name}</Text>
+                  <Text style={{ color: textSecondary }}>Branch:</Text>
+                  <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.branch.name}</Text>
                 </View>
               )}
             </View>
-          </Card>
+          </View>
 
-          {/* Services */}
           {((appointment.services && Array.isArray(appointment.services) && appointment.services.length > 0) || 
             (appointment.appointment_services && Array.isArray(appointment.appointment_services) && appointment.appointment_services.length > 0)) && (
-            <Card style={tw`p-5`}>
-              <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
-                Services ({(appointment.appointment_services?.length || appointment.services?.length || 0)})
-              </Text>
+            <View style={[
+              tw`rounded-2xl p-5`,
+              { backgroundColor: cardBg, borderWidth: 1, borderColor }
+            ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
+              Services ({(appointment.appointment_services?.length || appointment.services?.length || 0)})
+            </Text>
               <View style={tw`gap-3`}>
                 {(() => {
                   if (appointment.appointment_services && Array.isArray(appointment.appointment_services) && appointment.appointment_services.length > 0) {
@@ -641,12 +615,14 @@ export default function AppointmentDetailScreen() {
                   return null;
                 })()}
               </View>
-            </Card>
+            </View>
           )}
 
-          {/* Pricing */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Pricing
             </Text>
             <View style={tw`gap-3`}>
@@ -659,25 +635,25 @@ export default function AppointmentDetailScreen() {
                   return (
                     <View>
                       <View style={tw`flex-row justify-between mb-2`}>
-                        <Text variant="secondary">Total:</Text>
-                        <Text variant="primary" weight="semibold">
+                        <Text style={{ color: textSecondary }}>Total:</Text>
+                        <Text style={[tw`font-semibold`, { color: textPrimary }]}>
                           {String(appointment.currency_symbol || '₹')}{String(typeof totalPrice === 'number' ? totalPrice.toFixed(2) : '0.00')}
                         </Text>
                       </View>
                       {couponDiscount > 0 && (
                         <View style={tw`flex-row justify-between mb-2`}>
-                          <Text variant="secondary">Coupon Discount:</Text>
-                          <Text variant="primary" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                          <Text style={{ color: textSecondary }}>Coupon Discount:</Text>
+                          <Text style={[tw`font-semibold`, { color: SalozyColors.status.success }]}>
                             -{String(appointment.currency_symbol || '₹')}{String(typeof couponDiscount === 'number' ? couponDiscount.toFixed(2) : '0.00')}
                           </Text>
                         </View>
                       )}
                       <View style={[
                         tw`flex-row justify-between pt-3 border-t`,
-                        { borderColor: colors.border }
+                        { borderColor: borderColor }
                       ]}>
-                        <Text size="lg" weight="bold" variant="primary">Final Amount:</Text>
-                        <Text size="lg" weight="bold" variant="primary" style={{ color: SalozyColors.status.success }}>
+                        <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>Final Amount:</Text>
+                        <Text style={[tw`text-lg font-bold`, { color: SalozyColors.status.success }]}>
                           {String(appointment.currency_symbol || '₹')}{String(typeof finalAmount === 'number' ? finalAmount.toFixed(2) : '0.00')}
                         </Text>
                       </View>
@@ -687,27 +663,28 @@ export default function AppointmentDetailScreen() {
                 
                 return (
                   <View style={tw`flex-row justify-between`}>
-                    <Text size="lg" weight="bold" variant="primary">Total Amount:</Text>
-                    <Text size="lg" weight="bold" variant="primary" style={{ color: SalozyColors.status.success }}>
+                    <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>Total Amount:</Text>
+                    <Text style={[tw`text-lg font-bold`, { color: SalozyColors.status.success }]}>
                       {String(appointment.currency_symbol || '₹')}{String(typeof finalAmount === 'number' ? finalAmount.toFixed(2) : '0.00')}
                     </Text>
                   </View>
                 );
               })()}
             </View>
-          </Card>
+          </View>
 
-          {/* Notes */}
           {appointment.notes && (
-            <Card style={tw`p-5`}>
-              <Text size="lg" weight="bold" variant="primary" style={tw`mb-3`}>
+            <View style={[
+              tw`rounded-2xl p-5`,
+              { backgroundColor: cardBg, borderWidth: 1, borderColor }
+            ]}>
+              <Text style={[tw`text-lg font-bold mb-3`, { color: textPrimary }]}>
                 Notes
               </Text>
-              <Text variant="primary">{appointment.notes}</Text>
-            </Card>
+              <Text style={{ color: textPrimary }}>{appointment.notes}</Text>
+            </View>
           )}
 
-          {/* Action Buttons */}
           <View style={tw`flex-row gap-3`}>
             {canApproveQuickly && (
               <TouchableOpacity
@@ -729,7 +706,7 @@ export default function AppointmentDetailScreen() {
             )}
             {canEdit && (
               <TouchableOpacity
-                onPress={() => router.push(`/appointments/${id}/edit`)}
+                onPress={() => router.push(`/(tabs)/appointments/${id}/edit`)}
                 style={[
                   tw`flex-1 px-5 py-3 rounded-xl`,
                   { backgroundColor: SalozyColors.primary.DEFAULT }
@@ -764,7 +741,6 @@ export default function AppointmentDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Quick Approve Modal */}
       {canApproveQuickly && (
         <Modal
           visible={approveModalVisible}
@@ -952,3 +928,4 @@ export default function AppointmentDetailScreen() {
     </SafeAreaView>
   );
 }
+

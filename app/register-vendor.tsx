@@ -52,6 +52,12 @@ export default function RegisterVendorScreen() {
   const [processing, setProcessing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  // Helper function to determine if message should be shown inline (long) or toast (short)
+  const shouldShowInline = (message: string): boolean => {
+    return message.length > 100;
+  };
 
   const handleChange = (field: string, value: string) => {
     let newValue = value;
@@ -76,6 +82,11 @@ export default function RegisterVendorScreen() {
         delete newErrors[field];
         return newErrors;
       });
+    }
+    
+    // Clear inline error when user starts typing
+    if (inlineError) {
+      setInlineError(null);
     }
   };
 
@@ -119,6 +130,9 @@ export default function RegisterVendorScreen() {
   };
 
   const submitForm = async () => {
+    // Clear any previous inline errors
+    setInlineError(null);
+    
     if (!validateForm()) {
       showToast.error('Please fix the errors in the form', 'Validation Error');
       return;
@@ -148,10 +162,12 @@ export default function RegisterVendorScreen() {
           });
         }, 1200);
       } else {
-        showToast.error(
-          response.message || 'Registration failed. Please try again.',
-          'Registration Failed'
-        );
+        const errorMessage = response.message || 'Registration failed. Please try again.';
+        if (shouldShowInline(errorMessage)) {
+          setInlineError(errorMessage);
+        } else {
+          showToast.error(errorMessage, 'Registration Failed');
+        }
       }
     } catch (err: any) {
       const apiError = err as ApiError;
@@ -168,7 +184,11 @@ export default function RegisterVendorScreen() {
         showToast.error('Please fix the errors in the form', 'Validation Error');
       } else {
         const errorMessage = apiError.message || 'Registration failed. Please try again.';
+        if (shouldShowInline(errorMessage)) {
+          setInlineError(errorMessage);
+        } else {
         showToast.error(errorMessage, 'Registration Failed');
+        }
       }
     } finally {
       setProcessing(false);
@@ -214,6 +234,35 @@ export default function RegisterVendorScreen() {
                   Start your business journey with our comprehensive salon management platform
                 </Text>
               </View>
+
+              {/* Inline Error Message */}
+              {inlineError && (
+                <View style={[
+                  tw`p-4 rounded-2xl mb-4 border`,
+                  {
+                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
+                    borderColor: '#EF4444',
+                    borderWidth: 1,
+                  }
+                ]}>
+                  <View style={tw`flex-row items-start mb-2`}>
+                    <MaterialIcons name="error-outline" size={20} color="#DC2626" style={tw`mr-2 mt-0.5`} />
+                    <Text size="base" weight="semibold" style={{ color: '#991B1B' }}>
+                      Registration Failed
+                    </Text>
+                  </View>
+                  <Text size="sm" style={{ color: '#DC2626', lineHeight: 20 }}>
+                    {inlineError}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setInlineError(null)}
+                    style={tw`mt-2 self-end`}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <MaterialIcons name="close" size={18} color="#DC2626" />
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Form */}
               <View>

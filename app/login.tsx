@@ -1,5 +1,4 @@
-import { Button, Input, Text } from '@/components/atoms';
-import { EmailIcon } from '@/components/atoms';
+import { Button, EmailIcon, Input, Text } from '@/components/atoms';
 import { getThemeColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
@@ -74,12 +73,22 @@ export default function LoginScreen() {
   const [resendingEmail, setResendingEmail] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const [banner, setBanner] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  // Helper function to determine if message should be shown inline (long) or toast (short)
+  const shouldShowInline = (message: string): boolean => {
+    return message.length > 100;
+  };
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    // Clear inline error when user starts typing
+    if (inlineError) {
+      setInlineError(null);
+    }
   };
 
   useEffect(() => {
@@ -97,6 +106,9 @@ export default function LoginScreen() {
   }, [params.message, params.messageType, params.verificationEmail]);
 
   const submitForm = async () => {
+    // Clear any previous inline errors
+    setInlineError(null);
+    
     if (!formData.email || !formData.password) {
       showToast.error('Please enter both email and password', 'Validation Error');
       return;
@@ -115,10 +127,12 @@ export default function LoginScreen() {
           router.replace('/(tabs)');
         }, 500);
       } else {
-        showToast.error(
-          response.message || 'Login failed. Please try again.',
-          'Login Failed'
-        );
+        const errorMessage = response.message || 'Login failed. Please try again.';
+        if (shouldShowInline(errorMessage)) {
+          setInlineError(errorMessage);
+        } else {
+          showToast.error(errorMessage, 'Login Failed');
+        }
       }
     } catch (err: any) {
       const apiError = err as ApiError;
@@ -135,7 +149,11 @@ export default function LoginScreen() {
         });
       } else {
         const errorMessage = apiError.message || 'Login failed. Please check your credentials and try again.';
-        showToast.error(errorMessage, 'Login Failed');
+        if (shouldShowInline(errorMessage)) {
+          setInlineError(errorMessage);
+        } else {
+          showToast.error(errorMessage, 'Login Failed');
+        }
       }
     } finally {
       setProcessing(false);
@@ -228,6 +246,35 @@ export default function LoginScreen() {
                   <Text size="sm" variant="secondary">
                     {banner.message}
                   </Text>
+                </View>
+              )}
+
+              {/* Inline Error Message */}
+              {inlineError && (
+                <View style={[
+                  tw`p-4 rounded-2xl mb-4 border`,
+                  {
+                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
+                    borderColor: '#EF4444',
+                    borderWidth: 1,
+                  }
+                ]}>
+                  <View style={tw`flex-row items-start mb-2`}>
+                    <MaterialIcons name="error-outline" size={20} color="#DC2626" style={tw`mr-2 mt-0.5`} />
+                    <Text size="base" weight="semibold" style={{ color: '#991B1B' }}>
+                      Login Failed
+                    </Text>
+                  </View>
+                  <Text size="sm" style={{ color: '#DC2626', lineHeight: 20 }}>
+                    {inlineError}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setInlineError(null)}
+                    style={tw`mt-2 self-end`}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <MaterialIcons name="close" size={18} color="#DC2626" />
+                  </TouchableOpacity>
                 </View>
               )}
 

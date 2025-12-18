@@ -1,7 +1,8 @@
-import { Card, Text } from '@/components/atoms';
+import { Text } from '@/components/atoms';
+import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors } from '@/constants/colors';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/hooks/use-auth';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
@@ -13,6 +14,12 @@ export default function ProfileScreen() {
   const isDark = colorScheme === 'dark';
   const colors = getThemeColors(isDark);
   const { isAuthenticated, isChecking, user } = useAuth();
+  
+  const bgColor = isDark ? '#111827' : '#F9FAFB';
+  const cardBg = isDark ? '#1F2937' : '#FFFFFF';
+  const textPrimary = isDark ? '#FFFFFF' : '#111827';
+  const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
+  const borderColor = isDark ? '#374151' : '#E5E7EB';
 
   useEffect(() => {
     if (!isChecking && !isAuthenticated) {
@@ -43,21 +50,20 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView
-      style={[tw`flex-1`, { backgroundColor: colors.background }]}
+      style={[tw`flex-1`, { backgroundColor: bgColor }]}
       edges={['top']}
     >
-      {/* Simple header */}
-      <View style={tw`px-4 pt-4 pb-2`}>
-        <Text size="2xl" weight="bold" variant="primary">
-          Profile
-        </Text>
-        <Text size="sm" style={tw`mt-1`} variant="secondary">
-          Update your account details
-        </Text>
-      </View>
+      {/* Global Header */}
+      <GlobalHeader
+        title="Profile"
+        subtitle="Update your account details"
+      />
 
-      <ScrollView style={tw`flex-1`} contentContainerStyle={tw`px-4 pb-6 gap-4`}>
-        <Card style={tw`p-5 rounded-2xl`}>
+      <ScrollView style={tw`flex-1`} contentContainerStyle={tw`px-4 pb-6 gap-3`}>
+        <View style={[
+          tw`rounded-2xl p-5`,
+          { backgroundColor: cardBg, borderWidth: 1, borderColor }
+        ]}>
           <View style={tw`flex-row items-center`}>
             <View
               style={[
@@ -65,34 +71,37 @@ export default function ProfileScreen() {
                 { backgroundColor: colors.secondaryBg },
               ]}
             >
-              <Text size="lg" weight="bold" variant="primary">
+              <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
                 {displayName.charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={tw`flex-1`}>
-              <Text size="lg" weight="bold" variant="primary">
+              <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
                 {displayName}
               </Text>
-              <Text size="sm" variant="secondary">
+              <Text style={[tw`text-sm`, { color: textSecondary }]}>
                 {displayEmail}
               </Text>
             </View>
           </View>
-        </Card>
+        </View>
 
         {/* Placeholder section for future editable fields */}
-        <Card style={tw`p-5 rounded-2xl`}>
-          <Text size="sm" weight="semibold" variant="secondary" style={tw`mb-3`}>
+        <View style={[
+          tw`rounded-2xl p-5`,
+          { backgroundColor: cardBg, borderWidth: 1, borderColor }
+        ]}>
+          <Text style={[tw`text-sm font-semibold mb-3`, { color: textSecondary }]}>
             Account
           </Text>
           <TouchableOpacity
             onPress={() => router.push('/profile')}
             style={tw`flex-row justify-between items-center py-2`}
           >
-            <Text variant="primary">Manage profile details</Text>
-            <Text variant="secondary">{'>'}</Text>
+            <Text style={{ color: textPrimary }}>Manage profile details</Text>
+            <Text style={{ color: textSecondary }}>{'>'}</Text>
           </TouchableOpacity>
-        </Card>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

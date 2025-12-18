@@ -1,6 +1,6 @@
-import { Card, Input, Text } from '@/components/atoms';
+import { Input, Text } from '@/components/atoms';
 import { DatePicker } from '@/components/molecules';
-import { useSidebar } from '@/components/organisms';
+import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -8,7 +8,7 @@ import { apiClient, ApiError } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import { showToast } from '@/lib/toast';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,32 +47,19 @@ interface FormData {
   staff: Staff[];
 }
 
-interface AppointmentDetail {
-  id: number;
-  user_id: number;
-  appointment_date: string;
-  appointment_time: string;
-  status: string;
-  notes?: string;
-  services: Array<{
-    id: number;
-    name: string;
-    price: number;
-    seat_id?: number;
-  }>;
-  staff_id?: number;
-}
-
-export default function EditAppointmentScreen() {
+export default function CreateAppointmentScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { openSidebar } = useSidebar();
   const { isAuthenticated, isChecking } = useAuth(true);
   const colors = getThemeColors(isDark);
-  const { id } = useLocalSearchParams<{ id: string }>();
+  
+  const bgColor = isDark ? '#111827' : '#F9FAFB';
+  const cardBg = isDark ? '#1F2937' : '#FFFFFF';
+  const textPrimary = isDark ? '#FFFFFF' : '#111827';
+  const textSecondary = isDark ? '#9CA3AF' : '#4B5563';
+  const borderColor = isDark ? '#374151' : '#E5E7EB';
 
   const [formData, setFormData] = useState<FormData | null>(null);
-  const [appointment, setAppointment] = useState<AppointmentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -82,7 +69,6 @@ export default function EditAppointmentScreen() {
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [seat_id, setSeatId] = useState<string>('');
   const [staff_id, setStaffId] = useState<string>('');
-  const [status, setStatus] = useState<string>('pending');
   const [notes, setNotes] = useState<string>('');
 
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -94,38 +80,18 @@ export default function EditAppointmentScreen() {
     }
   }, [isAuthenticated, isChecking]);
 
-  const fetchData = async () => {
-    if (!isAuthenticated || !id) return;
+  const fetchFormData = async () => {
+    if (!isAuthenticated) return;
 
     try {
       setLoading(true);
-      const [formResponse, appointmentResponse] = await Promise.all([
-        apiClient.get<FormData>(API_ENDPOINTS.APPOINTMENT_FORM_DATA),
-        apiClient.get<AppointmentDetail>(API_ENDPOINTS.APPOINTMENT_BY_ID(id))
-      ]);
+      const response = await apiClient.get<FormData>(API_ENDPOINTS.APPOINTMENT_FORM_DATA);
       
-      if (formResponse.success && formResponse.data) {
-        setFormData(formResponse.data);
-      }
-      
-      if (appointmentResponse.success && appointmentResponse.data) {
-        const apt = appointmentResponse.data as any;
-        setAppointment(apt);
-        setUserId(apt.user_id?.toString() || '');
-        setAppointmentDate(apt.appointment_date || '');
-        setAppointmentTime(apt.appointment_time || '');
-        setStatus(apt.status || 'pending');
-        setNotes(apt.notes || '');
-        setSelectedServices(apt.services?.map((s: any) => s.id) || []);
-        setSeatId(apt.services?.[0]?.seat_id?.toString() || '');
-        setStaffId(apt.staff_id?.toString() || '');
-        
-        if (apt.appointment_time) {
-          const [hours, minutes] = apt.appointment_time.split(':');
-          const timeDate = new Date();
-          timeDate.setHours(parseInt(hours), parseInt(minutes));
-          setTempTime(timeDate);
-        }
+      if (response.success && response.data) {
+        setFormData(response.data);
+      } else {
+        showToast.error('Failed to load form data', 'Error');
+        router.back();
       }
     } catch (err: any) {
       const apiError = err as ApiError;
@@ -134,7 +100,7 @@ export default function EditAppointmentScreen() {
         router.replace('/login');
         return;
       }
-      showToast.error(apiError.message || 'Failed to load data', 'Error');
+      showToast.error(apiError.message || 'Failed to load form data', 'Error');
       router.back();
     } finally {
       setLoading(false);
@@ -142,10 +108,10 @@ export default function EditAppointmentScreen() {
   };
 
   useEffect(() => {
-    if (isAuthenticated && !isChecking && id) {
-      fetchData();
+    if (isAuthenticated && !isChecking) {
+      fetchFormData();
     }
-  }, [isAuthenticated, isChecking, id]);
+  }, [isAuthenticated, isChecking]);
 
   const formatTime = (date: Date): string => {
     const hours = String(date.getHours()).padStart(2, '0');
@@ -188,10 +154,6 @@ export default function EditAppointmentScreen() {
       showToast.error('Please select at least one service', 'Validation Error');
       return;
     }
-    if (status !== 'pending' && !seat_id) {
-      showToast.error('Please select a seat when status is not pending', 'Validation Error');
-      return;
-    }
 
     try {
       setSubmitting(true);
@@ -201,7 +163,6 @@ export default function EditAppointmentScreen() {
         appointment_date,
         appointment_time,
         services,
-        status,
         notes: notes || null,
       };
       if (seat_id) {
@@ -211,17 +172,17 @@ export default function EditAppointmentScreen() {
         payload.staff_id = parseInt(staff_id);
       }
 
-      const response = await apiClient.put(API_ENDPOINTS.APPOINTMENT_UPDATE(id!), payload);
+      const response = await apiClient.post(API_ENDPOINTS.APPOINTMENT_CREATE, payload);
       
       if (response.success) {
-        showToast.success(response.message || 'Appointment updated successfully', 'Success');
-        router.replace(`/appointments/${id}`);
+        showToast.success(response.message || 'Appointment created successfully', 'Success');
+        router.replace('/(tabs)/appointments');
       } else {
-        showToast.error(response.message || 'Failed to update appointment', 'Error');
+        showToast.error(response.message || 'Failed to create appointment', 'Error');
       }
     } catch (err: any) {
       const apiError = err as ApiError;
-      showToast.error(apiError.message || 'Failed to update appointment', 'Error');
+      showToast.error(apiError.message || 'Failed to create appointment', 'Error');
     } finally {
       setSubmitting(false);
     }
@@ -249,31 +210,10 @@ export default function EditAppointmentScreen() {
     );
   }
 
-  if (!formData || !appointment) {
+  if (!formData) {
     return (
       <SafeAreaView style={[tw`flex-1 items-center justify-center px-4`, { backgroundColor: colors.background }]} edges={['top']}>
-        <Text style={tw`text-lg font-semibold mb-2`} variant="primary">Failed to load data</Text>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[
-            tw`px-6 py-3 rounded-xl mt-4`,
-            { backgroundColor: SalozyColors.primary.DEFAULT }
-          ]}
-        >
-          <Text style={tw`text-white font-semibold`}>Go Back</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-
-  const canEdit = !['completed', 'cancelled', 'in_progress'].includes(appointment.status);
-  if (!canEdit) {
-    return (
-      <SafeAreaView style={[tw`flex-1 items-center justify-center px-4`, { backgroundColor: colors.background }]} edges={['top']}>
-        <Text style={tw`text-lg font-semibold mb-2`} variant="primary">Cannot Edit</Text>
-        <Text style={tw`text-center mb-4`} variant="secondary">
-          This appointment cannot be edited as its status is {appointment.status}
-        </Text>
+        <Text style={tw`text-lg font-semibold mb-2`} variant="primary">Failed to load form data</Text>
         <TouchableOpacity
           onPress={() => router.back()}
           style={[
@@ -288,31 +228,19 @@ export default function EditAppointmentScreen() {
   }
 
   return (
-    <SafeAreaView style={[tw`flex-1`, { backgroundColor: colors.background }]} edges={['top']}>
-      {/* Header */}
-      <View style={tw`px-4 pt-4 pb-2 flex-row justify-between items-center`}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[
-            tw`p-2 rounded-xl`,
-            { backgroundColor: colors.secondaryBg }
-          ]}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Text style={tw`text-xl`}>←</Text>
-        </TouchableOpacity>
-        <View style={tw`flex-1 ml-4`}>
-          <Text size="2xl" weight="bold" variant="primary">
-            Edit Appointment
-          </Text>
-        </View>
-      </View>
+    <SafeAreaView style={[tw`flex-1`, { backgroundColor: bgColor }]} edges={['top']}>
+      <GlobalHeader
+        title="Create Appointment"
+        showBackButton={true}
+      />
 
       <ScrollView style={tw`flex-1`} contentContainerStyle={tw`pb-4`}>
-        <View style={tw`px-4 mt-4 gap-4`}>
-          {/* Customer Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+        <View style={tw`px-4 mt-4 gap-3`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Customer *
             </Text>
             <View style={tw`border rounded-xl overflow-hidden`} style={{ borderColor: colors.border }}>
@@ -340,11 +268,13 @@ export default function EditAppointmentScreen() {
                 ))}
               </ScrollView>
             </View>
-          </Card>
+          </View>
 
-          {/* Date Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Appointment Date *
             </Text>
             <DatePicker
@@ -353,11 +283,13 @@ export default function EditAppointmentScreen() {
               placeholder="Select appointment date"
               label="Date"
             />
-          </Card>
+          </View>
 
-          {/* Time Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Appointment Time *
             </Text>
             <TouchableOpacity
@@ -383,42 +315,13 @@ export default function EditAppointmentScreen() {
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               />
             )}
-          </Card>
+          </View>
 
-          {/* Status Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
-              Status *
-            </Text>
-            <View style={tw`flex-row gap-3 flex-wrap`}>
-              {['pending', 'completed', 'cancelled'].map((s) => (
-                <TouchableOpacity
-                  key={s}
-                  onPress={() => setStatus(s)}
-                  style={[
-                    tw`px-4 py-2 rounded-full border`,
-                    { 
-                      borderColor: status === s ? SalozyColors.primary.DEFAULT : colors.border,
-                      backgroundColor: status === s ? SalozyColors.primary.DEFAULT : 'transparent'
-                    }
-                  ]}
-                >
-                  <Text 
-                    style={{ 
-                      color: status === s ? '#FFFFFF' : colors.textPrimary,
-                      fontWeight: status === s ? 'bold' : 'normal'
-                    }}
-                  >
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Card>
-
-          {/* Services Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Services * (Select at least one)
             </Text>
             <View style={tw`gap-3`}>
@@ -456,32 +359,32 @@ export default function EditAppointmentScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-          </Card>
+          </View>
 
-          {/* Seat Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
-              Seat {status !== 'pending' ? '*' : '(Optional)'}
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
+              Seat (Optional)
             </Text>
             <View style={tw`border rounded-xl overflow-hidden`} style={{ borderColor: colors.border }}>
               <View style={tw`bg-gray-100 px-3 py-2`}>
                 <Text size="sm" variant="secondary">Select Seat</Text>
               </View>
               <ScrollView style={tw`max-h-32`}>
-                {status === 'pending' && (
-                  <TouchableOpacity
-                    onPress={() => setSeatId('')}
-                    style={[
-                      tw`px-4 py-3 border-b`,
-                      { 
-                        borderColor: colors.border,
-                        backgroundColor: !seat_id ? colors.secondaryBg : 'transparent'
-                      }
-                    ]}
-                  >
-                    <Text variant="primary" weight={!seat_id ? 'bold' : 'normal'}>None</Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  onPress={() => setSeatId('')}
+                  style={[
+                    tw`px-4 py-3 border-b`,
+                    { 
+                      borderColor: colors.border,
+                      backgroundColor: !seat_id ? colors.secondaryBg : 'transparent'
+                    }
+                  ]}
+                >
+                  <Text variant="primary" weight={!seat_id ? 'bold' : 'normal'}>None</Text>
+                </TouchableOpacity>
                 {formData.seats.map((seat) => (
                   <TouchableOpacity
                     key={seat.id}
@@ -501,11 +404,13 @@ export default function EditAppointmentScreen() {
                 ))}
               </ScrollView>
             </View>
-          </Card>
+          </View>
 
-          {/* Staff Selection */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Staff (Optional)
             </Text>
             <View style={tw`border rounded-xl overflow-hidden`} style={{ borderColor: colors.border }}>
@@ -545,11 +450,13 @@ export default function EditAppointmentScreen() {
                 ))}
               </ScrollView>
             </View>
-          </Card>
+          </View>
 
-          {/* Notes */}
-          <Card style={tw`p-5`}>
-            <Text size="lg" weight="bold" variant="primary" style={tw`mb-4`}>
+          <View style={[
+            tw`rounded-2xl p-5`,
+            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+          ]}>
+            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Notes (Optional)
             </Text>
             <Input
@@ -560,9 +467,8 @@ export default function EditAppointmentScreen() {
               numberOfLines={4}
               containerStyle={tw`mb-0`}
             />
-          </Card>
+          </View>
 
-          {/* Submit Button */}
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={submitting}
@@ -578,7 +484,7 @@ export default function EditAppointmentScreen() {
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
-                Update Appointment
+                Create Appointment
               </Text>
             )}
           </TouchableOpacity>
@@ -587,3 +493,4 @@ export default function EditAppointmentScreen() {
     </SafeAreaView>
   );
 }
+

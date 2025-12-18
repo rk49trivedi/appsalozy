@@ -1,5 +1,5 @@
 import { AppointmentsIcon, CustomersIcon, RevenueIcon, SeatsIcon } from '@/components/atoms';
-import { useSidebar } from '@/components/organisms';
+import { GlobalHeader } from '@/components/organisms';
 import { SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -66,7 +66,6 @@ interface DashboardData {
 export default function DashboardScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { openSidebar } = useSidebar();
   const { isAuthenticated, isChecking } = useAuth(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -212,27 +211,11 @@ export default function DashboardScreen() {
         contentContainerStyle={tw`pb-4`}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Header with Burger Menu */}
-        <View style={tw`px-4 pt-4 pb-2 flex-row justify-between items-center`}>
-          <TouchableOpacity
-            onPress={openSidebar}
-            style={[
-              tw`p-2 rounded-xl`,
-              { backgroundColor: isDark ? '#374151' : '#F3F4F6' }
-            ]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={tw`text-2xl`}>☰</Text>
-          </TouchableOpacity>
-          <View style={tw`flex-1 ml-4`}>
-            <Text style={[tw`text-2xl font-bold`, { color: textPrimary }]}>
-              Welcome back!
-            </Text>
-            <Text style={[tw`text-sm mt-1`, { color: textSecondary }]}>
-              Here's your salon overview
-            </Text>
-          </View>
-        </View>
+        {/* Global Header */}
+        <GlobalHeader
+          title="Welcome back!"
+          subtitle="Here's your salon overview"
+        />
 
         {/* Stats Cards Grid */}
         <View style={tw`px-4 mt-4`}>

@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 
+import { AppointmentsIcon, CustomersIcon, DashboardIcon } from '@/components/atoms';
 import { AuthGuard } from '@/components/organisms';
 import { HapticTab } from '@/components/utils';
-import { AppointmentsIcon, CustomersIcon, DashboardIcon } from '@/components/atoms';
 import { SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -36,13 +36,11 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* Left tab: Appointments list (routes to root /appointments) */}
+      {/* Left tab: Appointments */}
       <Tabs.Screen
-        name="appointmentsTab"
+        name="appointments"
         options={{
           title: 'Appointments',
-          // Tell Expo Router this tab should open the root /appointments route
-          href: '/appointments',
           tabBarIcon: ({ color, focused }) => (
             <AppointmentsIcon
               size={24}

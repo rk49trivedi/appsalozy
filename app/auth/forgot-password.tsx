@@ -41,15 +41,28 @@ export default function ForgotPasswordScreen() {
   });
 
   const [processing, setProcessing] = useState(false);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  // Helper function to determine if message should be shown inline (long) or toast (short)
+  const shouldShowInline = (message: string): boolean => {
+    return message.length > 100;
+  };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    // Clear inline error when user starts typing
+    if (inlineError) {
+      setInlineError(null);
+    }
   };
 
   const submitForm = async () => {
+    // Clear any previous inline errors
+    setInlineError(null);
+    
     if (!formData.email) {
       showToast.error('Please enter your email address', 'Validation Error');
       return;
@@ -84,15 +97,21 @@ export default function ForgotPasswordScreen() {
           });
         }, 1500);
       } else {
-        showToast.error(
-          response.message || 'Failed to send reset link. Please try again.',
-          'Error'
-        );
+        const errorMessage = response.message || 'Failed to send reset link. Please try again.';
+        if (shouldShowInline(errorMessage)) {
+          setInlineError(errorMessage);
+        } else {
+          showToast.error(errorMessage, 'Error');
+        }
       }
     } catch (err: any) {
       const apiError = err as ApiError;
       const errorMessage = apiError.message || 'Failed to send reset link. Please try again.';
+      if (shouldShowInline(errorMessage)) {
+        setInlineError(errorMessage);
+      } else {
       showToast.error(errorMessage, 'Error');
+      }
     } finally {
       setProcessing(false);
     }
@@ -135,6 +154,35 @@ export default function ForgotPasswordScreen() {
                   Enter your email address and we'll send you a link to reset your password
                 </Text>
               </View>
+
+              {/* Inline Error Message */}
+              {inlineError && (
+                <View style={[
+                  tw`p-4 rounded-2xl mb-4 border`,
+                  {
+                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 242, 242, 0.95)',
+                    borderColor: '#EF4444',
+                    borderWidth: 1,
+                  }
+                ]}>
+                  <View style={tw`flex-row items-start mb-2`}>
+                    <MaterialIcons name="error-outline" size={20} color="#DC2626" style={tw`mr-2 mt-0.5`} />
+                    <Text size="base" weight="semibold" style={{ color: '#991B1B' }}>
+                      Error
+                    </Text>
+                  </View>
+                  <Text size="sm" style={{ color: '#DC2626', lineHeight: 20 }}>
+                    {inlineError}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setInlineError(null)}
+                    style={tw`mt-2 self-end`}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <MaterialIcons name="close" size={18} color="#DC2626" />
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Form */}
               <View>

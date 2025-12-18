@@ -1,88 +1,149 @@
 /**
  * Custom Toast Configuration
- * Modern toast styling for the app
+ * Modern toast styling for the app with support for long messages
+ * Uses ScrollView for very long content to ensure full message visibility
  */
-import { BaseToast, ErrorToast, InfoToast } from 'react-native-toast-message';
+import { ScrollView, Text, View } from 'react-native';
+
+// Custom toast component with scrollable content for long messages
+const CustomScrollableToast = ({ 
+  type, 
+  text1, 
+  text2, 
+  props 
+}: { 
+  type: 'success' | 'error' | 'info';
+  text1?: string;
+  text2?: string;
+  props: any;
+}) => {
+  // Determine if message is long enough to require scrolling
+  const messageLength = (text1?.length || 0) + (text2?.length || 0);
+  const isLongMessage = messageLength > 150;
+  
+  const styles = {
+    success: {
+      borderColor: '#22C55E',
+      backgroundColor: '#F0FDF4',
+      titleColor: '#166534',
+      messageColor: '#15803D',
+    },
+    error: {
+      borderColor: '#EF4444',
+      backgroundColor: '#FEF2F2',
+      titleColor: '#991B1B',
+      messageColor: '#DC2626',
+    },
+    info: {
+      borderColor: '#3B82F6',
+      backgroundColor: '#EFF6FF',
+      titleColor: '#1E40AF',
+      messageColor: '#2563EB',
+    },
+  };
+
+  const style = styles[type];
+
+  const content = (
+    <View style={{ flex: 1 }}>
+      {text1 && (
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '600',
+            color: style.titleColor,
+            marginBottom: text2 ? 6 : 0,
+            flexWrap: 'wrap',
+          }}
+        >
+          {text1}
+        </Text>
+      )}
+      {text2 && (
+        <Text
+          style={{
+            fontSize: 13,
+            color: style.messageColor,
+            lineHeight: 18,
+            flexWrap: 'wrap',
+          }}
+        >
+          {text2}
+        </Text>
+      )}
+    </View>
+  );
+
+  // For short messages, we want a compact toast at bottom
+  // For long messages, this shouldn't be used (inline error should be shown instead)
+  return (
+    <View
+      style={{
+        borderLeftColor: style.borderColor,
+        backgroundColor: style.backgroundColor,
+        minHeight: 60,
+        maxHeight: isLongMessage ? 320 : 180,
+        borderLeftWidth: 4,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 8,
+        width: '92%',
+        overflow: 'hidden',
+      }}
+    >
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          flex: 1,
+        }}
+      >
+        {isLongMessage ? (
+          <ScrollView
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+            style={{ maxHeight: 300 }}
+            contentContainerStyle={{ paddingRight: 4 }}
+            bounces={false}
+          >
+            {content}
+          </ScrollView>
+        ) : (
+          content
+        )}
+      </View>
+    </View>
+  );
+};
 
 export const toastConfig = {
   success: (props: any) => (
-    <BaseToast
-      {...props}
-      style={{
-        borderLeftColor: '#22C55E',
-        backgroundColor: '#F0FDF4',
-        minHeight: 60,
-        borderLeftWidth: 4,
-        borderRadius: 8,
-      }}
-      contentContainerStyle={{
-        paddingHorizontal: 15,
-      }}
-      text1Style={{
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#166534',
-      }}
-      text2Style={{
-        fontSize: 13,
-        color: '#15803D',
-      }}
-      text1NumberOfLines={props.text1NumberOfLines ?? 3}
-      text2NumberOfLines={props.text2NumberOfLines ?? 6}
+    <CustomScrollableToast
+      type="success"
+      text1={props.text1}
+      text2={props.text2}
+      props={props}
     />
   ),
 
   error: (props: any) => (
-    <ErrorToast
-      {...props}
-      style={{
-        borderLeftColor: '#EF4444',
-        backgroundColor: '#FEF2F2',
-        minHeight: 60,
-        borderLeftWidth: 4,
-        borderRadius: 8,
-      }}
-      contentContainerStyle={{
-        paddingHorizontal: 15,
-      }}
-      text1Style={{
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#991B1B',
-      }}
-      text2Style={{
-        fontSize: 13,
-        color: '#DC2626',
-      }}
-      text1NumberOfLines={props.text1NumberOfLines ?? 3}
-      text2NumberOfLines={props.text2NumberOfLines ?? 6}
+    <CustomScrollableToast
+      type="error"
+      text1={props.text1}
+      text2={props.text2}
+      props={props}
     />
   ),
 
   info: (props: any) => (
-    <InfoToast
-      {...props}
-      style={{
-        borderLeftColor: '#3B82F6',
-        backgroundColor: '#EFF6FF',
-        minHeight: 60,
-        borderLeftWidth: 4,
-        borderRadius: 8,
-      }}
-      contentContainerStyle={{
-        paddingHorizontal: 15,
-      }}
-      text1Style={{
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1E40AF',
-      }}
-      text2Style={{
-        fontSize: 13,
-        color: '#2563EB',
-      }}
-      text1NumberOfLines={props.text1NumberOfLines ?? 3}
-      text2NumberOfLines={props.text2NumberOfLines ?? 6}
+    <CustomScrollableToast
+      type="info"
+      text1={props.text1}
+      text2={props.text2}
+      props={props}
     />
   ),
 };

@@ -30,9 +30,12 @@ interface DashboardData {
   };
   revenueStats: {
     today: number;
+    overall: number;
     week: number;
     month: number;
     grand_total: number;
+    plan_revenue?: number;
+    today_plan_revenue?: number;
   };
   customerInsights: {
     total_customers: number;
@@ -337,6 +340,38 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
+
+        {/* Plan Revenue Section */}
+        {dashboardData.revenueStats.plan_revenue !== undefined && (
+          <View style={tw`px-4 mt-4`}>
+            <View style={[
+              tw`rounded-2xl p-4`,
+              { backgroundColor: cardBg, borderWidth: 1, borderColor }
+            ]}>
+              <View style={tw`flex-row justify-between items-center mb-4`}>
+                <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
+                  Plan Purchase Revenue
+                </Text>
+              </View>
+              <View style={tw`flex-row gap-3`}>
+                <View style={tw`flex-1 bg-primary/10 rounded-xl p-3`}>
+                  <Text style={[tw`text-xs mb-1`, { color: textSecondary }]}>Overall Plan Revenue</Text>
+                  <Text style={[tw`text-xl font-bold`, { color: SalozyColors.primary.DEFAULT }]}>
+                    {currencySymbol} {(dashboardData.revenueStats.plan_revenue || 0).toFixed(2)}
+                  </Text>
+                  <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>From all purchases</Text>
+                </View>
+                <View style={tw`flex-1 bg-success/10 rounded-xl p-3`}>
+                  <Text style={[tw`text-xs mb-1`, { color: textSecondary }]}>Today's Plan Revenue</Text>
+                  <Text style={[tw`text-xl font-bold`, { color: SalozyColors.status.success }]}>
+                    {currencySymbol} {(dashboardData.revenueStats.today_plan_revenue || 0).toFixed(2)}
+                  </Text>
+                  <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>From today's purchases</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Today's Appointments */}
         <View style={tw`px-4 mt-6`}>

@@ -10,13 +10,14 @@ import { showToast } from '@/lib/toast';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Animated,
-    Modal,
-    RefreshControl,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
@@ -806,16 +807,6 @@ export default function AppointmentsScreen() {
                                     <Text size="sm" weight="semibold" variant="primary">
                                       {String(serviceName)}
                                     </Text>
-                                    {aptService.status ? (
-                                      <View style={tw`mt-1`}>
-                                        <Badge 
-                                          variant={getStatusVariant(aptService.status)} 
-                                          style={tw`self-start`}
-                                        >
-                                          {String(aptService.status || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                        </Badge>
-                                      </View>
-                                    ) : null}
                                   </View>
                                   <Text size="base" weight="bold" variant="primary">
                                     {String(appointment.currency_symbol || '₹')}{String(servicePrice)}
@@ -1009,13 +1000,18 @@ export default function AppointmentsScreen() {
         animationType="slide"
         onRequestClose={closeApproveModal}
       >
-        <SafeAreaView style={tw`flex-1 justify-end bg-black/40`} edges={['bottom']}>
-          <View
-            style={[
-              tw`rounded-t-3xl px-5 pt-4 pb-6`,
-              { backgroundColor: colors.background },
-            ]}
-          >
+        <Pressable
+          style={tw`flex-1 justify-end bg-black/40`}
+          onPress={closeApproveModal}
+        >
+          <SafeAreaView style={tw`flex-1 justify-end`} edges={['bottom']}>
+            <Pressable
+              onPress={(e) => e.stopPropagation()}
+              style={[
+                tw`rounded-t-3xl px-5 pt-4 pb-6`,
+                { backgroundColor: colors.background },
+              ]}
+            >
             <View style={tw`items-center mb-3`}>
               <View
                 style={tw`w-10 h-1.5 rounded-full bg-gray-300 mb-3`}
@@ -1154,24 +1150,29 @@ export default function AppointmentsScreen() {
                       approving || !selectedSeatId
                         ? colors.secondaryBg
                         : SalozyColors.primary.DEFAULT,
+                    opacity: approving || !selectedSeatId ? 0.6 : 1,
                   },
                 ]}
               >
                 {approving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={selectedSeatId ? "#FFFFFF" : colors.textSecondary} />
                 ) : (
                   <Text
                     size="sm"
                     weight="bold"
-                    style={{ color: '#FFFFFF', textAlign: 'center' }}
+                    style={{ 
+                      color: selectedSeatId ? '#FFFFFF' : colors.textSecondary, 
+                      textAlign: 'center' 
+                    }}
                   >
                     Approve & Notify
                   </Text>
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </SafeAreaView>
+            </Pressable>
+          </SafeAreaView>
+        </Pressable>
       </Modal>
     </SafeAreaView>
   );

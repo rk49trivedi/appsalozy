@@ -7,15 +7,17 @@ import { apiClient, ApiError } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
 import { showToast } from '@/lib/toast';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    RefreshControl,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
@@ -91,6 +93,9 @@ export default function AppointmentDetailScreen() {
   const [seatLoading, setSeatLoading] = useState(false);
   const [selectedSeatId, setSelectedSeatId] = useState<number | null>(null);
   const [approving, setApproving] = useState(false);
+  const [showBottomButtons, setShowBottomButtons] = useState(true);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const bottomButtonOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (!isChecking && !isAuthenticated) {
@@ -414,11 +419,35 @@ export default function AppointmentDetailScreen() {
         title={`#${appointment.ticket_number}`}
         subtitle={appointment.user?.name || 'Unknown User'}
         showBackButton={true}
+        rightAction={
+          canDelete ? (
+            <TouchableOpacity
+              onPress={handleDelete}
+              disabled={deleting}
+              style={[
+                tw`px-4 py-2 rounded-xl`,
+                { 
+                  backgroundColor: deleting ? colors.secondaryBg : SalozyColors.status.error,
+                  opacity: deleting ? 0.6 : 1,
+                }
+              ]}
+              activeOpacity={0.8}
+            >
+              {deleting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text size="sm" weight="bold" style={{ color: '#FFFFFF' }}>
+                  Delete
+                </Text>
+              )}
+            </TouchableOpacity>
+          ) : undefined
+        }
       />
 
       <ScrollView
         style={tw`flex-1`}
-        contentContainerStyle={tw`pb-4`}
+        contentContainerStyle={tw`pb-20`}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -426,32 +455,74 @@ export default function AppointmentDetailScreen() {
             tintColor={SalozyColors.primary.DEFAULT}
           />
         }
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          {
+            listener: (event: any) => {
+              const offsetY = event.nativeEvent.contentOffset.y;
+              const scrollingDown = offsetY > 50;
+              
+              if (scrollingDown && showBottomButtons) {
+                setShowBottomButtons(false);
+                Animated.timing(bottomButtonOpacity, {
+                  toValue: 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              } else if (!scrollingDown && !showBottomButtons) {
+                setShowBottomButtons(true);
+                Animated.timing(bottomButtonOpacity, {
+                  toValue: 1,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              }
+            },
+            useNativeDriver: false,
+          }
+        )}
+        scrollEventThrottle={16}
       >
-        <View style={tw`px-4 mt-2 gap-3`}>
+        <View style={tw`px-4 mt-2 gap-4`}>
+          {/* Header Card with Customer Info */}
           <View style={[
-            tw`rounded-2xl p-4`,
-            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+            tw`rounded-3xl p-5`,
+            { 
+              backgroundColor: cardBg, 
+              borderWidth: 1, 
+              borderColor,
+              shadowColor: isDark ? '#000000' : '#000000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }
           ]}>
-            <View style={tw`flex-row items-center justify-between`}>
-              <View style={tw`flex-row items-center`}>
+            <View style={tw`flex-row items-center justify-between mb-4`}>
+              <View style={tw`flex-row items-center flex-1`}>
                 <View
                   style={[
-                    tw`w-12 h-12 rounded-full items-center justify-center mr-3`,
+                    tw`w-16 h-16 rounded-full items-center justify-center mr-4`,
                     { backgroundColor: statusConfig.bg },
                   ]}
                 >
                   <AppointmentsIcon
-                    size={24}
+                    size={28}
                     color={statusConfig.text}
                   />
                 </View>
-                <View>
-                  <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
+                <View style={tw`flex-1`}>
+                  <Text style={[tw`text-xl font-bold mb-1`, { color: textPrimary }]}>
                     {appointment.user?.name || 'Unknown User'}
                   </Text>
                   <Text style={[tw`text-sm`, { color: textSecondary }]}>
                     {appointment.user?.email || 'No email'}
                   </Text>
+                  {appointment.user?.phone && (
+                    <Text style={[tw`text-sm mt-1`, { color: textSecondary }]}>
+                      {appointment.user.phone}
+                    </Text>
+                  )}
                 </View>
               </View>
               <Badge variant={getStatusVariant(displayStatus)}>
@@ -462,63 +533,64 @@ export default function AppointmentDetailScreen() {
                       .replace(/\b\w/g, (l) => l.toUpperCase())}
               </Badge>
             </View>
-          </View>
-
-          <View style={[
-            tw`rounded-2xl p-5`,
-            { backgroundColor: cardBg, borderWidth: 1, borderColor }
-          ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Customer Information
-            </Text>
-            <View style={tw`gap-3`}>
-              <View style={tw`flex-row justify-between`}>
-                <Text style={{ color: textSecondary }}>Name:</Text>
-                <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.user?.name || 'N/A'}</Text>
-              </View>
-              <View style={tw`flex-row justify-between`}>
-                <Text style={{ color: textSecondary }}>Email:</Text>
-                <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.user?.email || 'N/A'}</Text>
-              </View>
-              {appointment.user?.phone && (
-                <View style={tw`flex-row justify-between`}>
-                  <Text style={{ color: textSecondary }}>Phone:</Text>
-                  <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.user.phone}</Text>
-                </View>
-              )}
+            
+            {/* Ticket Number */}
+            <View style={[
+              tw`flex-row items-center justify-between pt-4 border-t`,
+              { borderColor: colors.border }
+            ]}>
+              <Text style={[tw`text-sm font-semibold`, { color: textSecondary }]}>
+                Ticket Number
+              </Text>
+              <Text style={[tw`text-base font-bold`, { color: SalozyColors.primary.DEFAULT }]}>
+                #{appointment.ticket_number}
+              </Text>
             </View>
           </View>
 
+          {/* Appointment Details Card */}
           <View style={[
-            tw`rounded-2xl p-5`,
-            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+            tw`rounded-3xl p-5`,
+            { 
+              backgroundColor: cardBg, 
+              borderWidth: 1, 
+              borderColor,
+              shadowColor: isDark ? '#000000' : '#000000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }
           ]}>
             <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Appointment Details
             </Text>
-            <View style={tw`gap-3`}>
+            <View style={tw`gap-4`}>
               <View style={[
-                tw`flex-row items-center p-3 rounded-xl`,
+                tw`flex-row items-center p-4 rounded-2xl`,
                 { backgroundColor: colors.secondaryBg }
               ]}>
                 <View style={tw`flex-1`}>
-                  <Text size="xs" variant="secondary" style={tw`mb-1`}>Date</Text>
-                  <Text size="base" weight="bold" variant="primary">
+                  <Text size="xs" variant="secondary" style={tw`mb-2`}>Date</Text>
+                  <Text size="lg" weight="bold" variant="primary">
                     {formatDate(appointment.appointment_date)}
                   </Text>
                 </View>
-                <View style={[tw`w-px h-8`, { backgroundColor: colors.border }]} />
+                <View style={[tw`w-px h-12 mx-4`, { backgroundColor: colors.border }]} />
                 <View style={tw`flex-1`}>
-                  <Text size="xs" variant="secondary" style={tw`mb-1`}>Time</Text>
-                  <Text size="base" weight="bold" variant="primary">
+                  <Text size="xs" variant="secondary" style={tw`mb-2`}>Time</Text>
+                  <Text size="lg" weight="bold" variant="primary">
                     {formatTime(appointment.appointment_time)}
                   </Text>
                 </View>
               </View>
               {appointment.branch && (
-                <View style={tw`flex-row justify-between`}>
-                  <Text style={{ color: textSecondary }}>Branch:</Text>
-                  <Text style={[tw`font-semibold`, { color: textPrimary }]}>{appointment.branch.name}</Text>
+                <View style={[
+                  tw`p-4 rounded-2xl`,
+                  { backgroundColor: colors.secondaryBg }
+                ]}>
+                  <Text size="xs" variant="secondary" style={tw`mb-2`}>Branch</Text>
+                  <Text size="base" weight="semibold" variant="primary">{appointment.branch.name}</Text>
                 </View>
               )}
             </View>
@@ -527,13 +599,22 @@ export default function AppointmentDetailScreen() {
           {((appointment.services && Array.isArray(appointment.services) && appointment.services.length > 0) || 
             (appointment.appointment_services && Array.isArray(appointment.appointment_services) && appointment.appointment_services.length > 0)) && (
             <View style={[
-              tw`rounded-2xl p-5`,
-              { backgroundColor: cardBg, borderWidth: 1, borderColor }
+              tw`rounded-3xl p-5`,
+              { 
+                backgroundColor: cardBg, 
+                borderWidth: 1, 
+                borderColor,
+                shadowColor: isDark ? '#000000' : '#000000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }
             ]}>
             <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
               Services ({(appointment.appointment_services?.length || appointment.services?.length || 0)})
             </Text>
-              <View style={tw`gap-3`}>
+              <View style={tw`gap-2`}>
                 {(() => {
                   if (appointment.appointment_services && Array.isArray(appointment.appointment_services) && appointment.appointment_services.length > 0) {
                     return appointment.appointment_services.map((aptService, index) => {
@@ -546,26 +627,16 @@ export default function AppointmentDetailScreen() {
                         <View 
                           key={`apt-service-${aptService.id || index}`} 
                           style={[
-                            tw`flex-row justify-between items-center p-3 rounded-xl`,
+                            tw`flex-row justify-between items-center p-4 rounded-2xl mb-2`,
                             { backgroundColor: colors.secondaryBg }
                           ]}
                         >
-                          <View style={tw`flex-1`}>
-                            <Text size="sm" weight="semibold" variant="primary">
+                          <View style={tw`flex-1 mr-3`}>
+                            <Text size="base" weight="semibold" variant="primary">
                               {String(serviceName)}
                             </Text>
-                            {aptService.status && (
-                              <View style={tw`mt-1`}>
-                                <Badge 
-                                  variant={getStatusVariant(aptService.status)} 
-                                  style={tw`self-start`}
-                                >
-                                  {String(aptService.status || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </Badge>
-                              </View>
-                            )}
                           </View>
-                          <Text size="base" weight="bold" variant="primary">
+                          <Text size="lg" weight="bold" variant="primary">
                             {String(appointment.currency_symbol || '₹')}{String(servicePrice)}
                           </Text>
                         </View>
@@ -581,30 +652,34 @@ export default function AppointmentDetailScreen() {
                         <View 
                           key={`service-${service.id || index}`} 
                           style={[
-                            tw`flex-row justify-between items-center p-3 rounded-xl`,
+                            tw`flex-row justify-between items-center p-4 rounded-2xl mb-2`,
                             { backgroundColor: colors.secondaryBg }
                           ]}
                         >
-                          <View style={tw`flex-1`}>
-                            <Text size="sm" weight="semibold" variant="primary">
+                          <View style={tw`flex-1 mr-3`}>
+                            <Text size="base" weight="semibold" variant="primary" style={tw`mb-1`}>
                               {String(service.name)}
                             </Text>
                             {(service.seat_name || service.staff_name) && (
-                              <View style={tw`mt-1 flex-row gap-2`}>
+                              <View style={tw`mt-2 flex-row gap-3 flex-wrap`}>
                                 {service.seat_name && (
-                                  <Text size="xs" variant="tertiary">
-                                    Seat: {String(service.seat_name)}
-                                  </Text>
+                                  <View style={[tw`px-2 py-1 rounded-lg`, { backgroundColor: cardBg }]}>
+                                    <Text size="xs" variant="secondary" weight="medium">
+                                      🪑 Seat: {String(service.seat_name)}
+                                    </Text>
+                                  </View>
                                 )}
                                 {service.staff_name && (
-                                  <Text size="xs" variant="tertiary">
-                                    Staff: {String(service.staff_name)}
-                                  </Text>
+                                  <View style={[tw`px-2 py-1 rounded-lg`, { backgroundColor: cardBg }]}>
+                                    <Text size="xs" variant="secondary" weight="medium">
+                                      👤 Staff: {String(service.staff_name)}
+                                    </Text>
+                                  </View>
                                 )}
                               </View>
                             )}
                           </View>
-                          <Text size="base" weight="bold" variant="primary">
+                          <Text size="lg" weight="bold" variant="primary">
                             {String(appointment.currency_symbol || '₹')}{String(servicePrice)}
                           </Text>
                         </View>
@@ -619,13 +694,22 @@ export default function AppointmentDetailScreen() {
           )}
 
           <View style={[
-            tw`rounded-2xl p-5`,
-            { backgroundColor: cardBg, borderWidth: 1, borderColor }
+            tw`rounded-3xl p-5`,
+            { 
+              backgroundColor: cardBg, 
+              borderWidth: 1, 
+              borderColor,
+              shadowColor: isDark ? '#000000' : '#000000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }
           ]}>
             <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Pricing
+              Pricing Summary
             </Text>
-            <View style={tw`gap-3`}>
+            <View style={tw`gap-4`}>
               {(() => {
                 const totalPrice = appointment.app_price || appointment.original_total || 0;
                 const couponDiscount = appointment.discount_amount || 0;
@@ -634,26 +718,36 @@ export default function AppointmentDetailScreen() {
                 if (couponDiscount > 0 || (appointment.original_total && appointment.original_total !== finalAmount)) {
                   return (
                     <View>
-                      <View style={tw`flex-row justify-between mb-2`}>
-                        <Text style={{ color: textSecondary }}>Total:</Text>
-                        <Text style={[tw`font-semibold`, { color: textPrimary }]}>
+                      <View style={[
+                        tw`flex-row justify-between items-center p-4 rounded-2xl mb-3`,
+                        { backgroundColor: colors.secondaryBg }
+                      ]}>
+                        <Text style={[tw`text-base`, { color: textSecondary }]}>Subtotal:</Text>
+                        <Text style={[tw`text-base font-semibold`, { color: textPrimary }]}>
                           {String(appointment.currency_symbol || '₹')}{String(typeof totalPrice === 'number' ? totalPrice.toFixed(2) : '0.00')}
                         </Text>
                       </View>
                       {couponDiscount > 0 && (
-                        <View style={tw`flex-row justify-between mb-2`}>
-                          <Text style={{ color: textSecondary }}>Coupon Discount:</Text>
-                          <Text style={[tw`font-semibold`, { color: SalozyColors.status.success }]}>
+                        <View style={[
+                          tw`flex-row justify-between items-center p-4 rounded-2xl mb-3`,
+                          { backgroundColor: colors.secondaryBg }
+                        ]}>
+                          <Text style={[tw`text-base`, { color: textSecondary }]}>Coupon Discount:</Text>
+                          <Text style={[tw`text-base font-semibold`, { color: SalozyColors.status.success }]}>
                             -{String(appointment.currency_symbol || '₹')}{String(typeof couponDiscount === 'number' ? couponDiscount.toFixed(2) : '0.00')}
                           </Text>
                         </View>
                       )}
                       <View style={[
-                        tw`flex-row justify-between pt-3 border-t`,
-                        { borderColor: borderColor }
+                        tw`flex-row justify-between items-center p-5 rounded-2xl`,
+                        { 
+                          backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.1)',
+                          borderWidth: 2,
+                          borderColor: SalozyColors.status.success,
+                        }
                       ]}>
-                        <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>Final Amount:</Text>
-                        <Text style={[tw`text-lg font-bold`, { color: SalozyColors.status.success }]}>
+                        <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Final Amount:</Text>
+                        <Text style={[tw`text-2xl font-bold`, { color: SalozyColors.status.success }]}>
                           {String(appointment.currency_symbol || '₹')}{String(typeof finalAmount === 'number' ? finalAmount.toFixed(2) : '0.00')}
                         </Text>
                       </View>
@@ -662,9 +756,16 @@ export default function AppointmentDetailScreen() {
                 }
                 
                 return (
-                  <View style={tw`flex-row justify-between`}>
-                    <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>Total Amount:</Text>
-                    <Text style={[tw`text-lg font-bold`, { color: SalozyColors.status.success }]}>
+                  <View style={[
+                    tw`flex-row justify-between items-center p-5 rounded-2xl`,
+                    { 
+                      backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.1)',
+                      borderWidth: 2,
+                      borderColor: SalozyColors.status.success,
+                    }
+                  ]}>
+                    <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Total Amount:</Text>
+                    <Text style={[tw`text-2xl font-bold`, { color: SalozyColors.status.success }]}>
                       {String(appointment.currency_symbol || '₹')}{String(typeof finalAmount === 'number' ? finalAmount.toFixed(2) : '0.00')}
                     </Text>
                   </View>
@@ -675,71 +776,91 @@ export default function AppointmentDetailScreen() {
 
           {appointment.notes && (
             <View style={[
-              tw`rounded-2xl p-5`,
-              { backgroundColor: cardBg, borderWidth: 1, borderColor }
+              tw`rounded-3xl p-5`,
+              { 
+                backgroundColor: cardBg, 
+                borderWidth: 1, 
+                borderColor,
+                shadowColor: isDark ? '#000000' : '#000000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 3,
+              }
             ]}>
               <Text style={[tw`text-lg font-bold mb-3`, { color: textPrimary }]}>
                 Notes
               </Text>
-              <Text style={{ color: textPrimary }}>{appointment.notes}</Text>
+              <Text style={[tw`text-base leading-6`, { color: textPrimary }]}>{appointment.notes}</Text>
             </View>
           )}
-
-          <View style={tw`flex-row gap-3`}>
-            {canApproveQuickly && (
-              <TouchableOpacity
-                onPress={openApproveModal}
-                style={[
-                  tw`flex-1 px-5 py-3 rounded-xl border`,
-                  { borderColor: SalozyColors.primary.DEFAULT },
-                ]}
-                activeOpacity={0.8}
-              >
-                <Text
-                  size="sm"
-                  weight="semibold"
-                  style={{ color: SalozyColors.primary.DEFAULT, textAlign: 'center' }}
-                >
-                  Approve & Select Seat
-                </Text>
-              </TouchableOpacity>
-            )}
-            {canEdit && (
-              <TouchableOpacity
-                onPress={() => router.push(`/(tabs)/appointments/${id}/edit`)}
-                style={[
-                  tw`flex-1 px-5 py-3 rounded-xl`,
-                  { backgroundColor: SalozyColors.primary.DEFAULT }
-                ]}
-                activeOpacity={0.8}
-              >
-                <Text size="sm" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
-                  Edit
-                </Text>
-              </TouchableOpacity>
-            )}
-            {canDelete && (
-              <TouchableOpacity
-                onPress={handleDelete}
-                disabled={deleting}
-                style={[
-                  tw`flex-1 px-5 py-3 rounded-xl`,
-                  { backgroundColor: deleting ? colors.secondaryBg : SalozyColors.status.error }
-                ]}
-                activeOpacity={0.8}
-              >
-                {deleting ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text size="sm" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
-                    Delete
-                  </Text>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
         </View>
       </ScrollView>
+
+      {/* Fixed Bottom Action Buttons - Only 2 buttons */}
+      {(canApproveQuickly || canEdit) && (
+        <Animated.View
+          style={[
+            tw`absolute bottom-0 left-0 right-0`,
+            { 
+              backgroundColor: cardBg,
+              borderTopWidth: 1,
+              borderTopColor: borderColor,
+              shadowColor: isDark ? '#000000' : '#000000',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 5,
+              opacity: bottomButtonOpacity,
+              transform: [
+                {
+                  translateY: bottomButtonOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [100, 0],
+                  }),
+                },
+              ],
+            }
+          ]}
+        >
+          <SafeAreaView edges={['left', 'right']} style={tw`px-4 py-2`}>
+            <View style={tw`flex-row items-center gap-2`}>
+              {canApproveQuickly && (
+                <TouchableOpacity
+                  onPress={openApproveModal}
+                  style={[
+                    tw`flex-1 px-5 py-3 rounded-2xl border-2`,
+                    { borderColor: SalozyColors.primary.DEFAULT },
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    size="base"
+                    weight="semibold"
+                    style={{ color: SalozyColors.primary.DEFAULT, textAlign: 'center' }}
+                  >
+                    Approve 
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {canEdit && (
+                <TouchableOpacity
+                  onPress={() => router.push(`/(tabs)/appointments/${id}/edit`)}
+                  style={[
+                    tw`flex-1 px-5 py-3 rounded-2xl`,
+                    { backgroundColor: SalozyColors.primary.DEFAULT }
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </SafeAreaView>
+        </Animated.View>
+      )}
 
       {canApproveQuickly && (
         <Modal
@@ -748,13 +869,18 @@ export default function AppointmentDetailScreen() {
           animationType="slide"
           onRequestClose={closeApproveModal}
         >
-          <SafeAreaView style={tw`flex-1 justify-end bg-black/40`} edges={['bottom']}>
-            <View
-              style={[
-                tw`rounded-t-3xl px-5 pt-4 pb-6`,
-                { backgroundColor: colors.background },
-              ]}
-            >
+          <Pressable
+            style={tw`flex-1 justify-end bg-black/40`}
+            onPress={closeApproveModal}
+          >
+            <SafeAreaView style={tw`flex-1 justify-end`} edges={['bottom']}>
+              <Pressable
+                onPress={(e) => e.stopPropagation()}
+                style={[
+                  tw`rounded-t-3xl px-5 pt-4 pb-6`,
+                  { backgroundColor: colors.background },
+                ]}
+              >
               <View style={tw`items-center mb-3`}>
                 <View
                   style={tw`w-10 h-1.5 rounded-full bg-gray-300 mb-3`}
@@ -905,24 +1031,29 @@ export default function AppointmentDetailScreen() {
                         approving || !selectedSeatId
                           ? colors.secondaryBg
                           : SalozyColors.primary.DEFAULT,
+                      opacity: approving || !selectedSeatId ? 0.6 : 1,
                     },
                   ]}
                 >
                   {approving ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={selectedSeatId ? "#FFFFFF" : colors.textSecondary} />
                   ) : (
                     <Text
                       size="sm"
                       weight="bold"
-                      style={{ color: '#FFFFFF', textAlign: 'center' }}
+                      style={{ 
+                        color: selectedSeatId ? '#FFFFFF' : colors.textSecondary, 
+                        textAlign: 'center' 
+                      }}
                     >
                       Approve & Notify
                     </Text>
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
-          </SafeAreaView>
+              </Pressable>
+            </SafeAreaView>
+          </Pressable>
         </Modal>
       )}
     </SafeAreaView>

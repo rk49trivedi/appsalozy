@@ -9,10 +9,9 @@ import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View }
 import tw from 'twrnc';
 import { Logo } from '../atoms/Logo';
 import {
-  AppointmentsIcon,
-  CustomersIcon,
-  DashboardIcon,
-  LogoutIcon,
+    AppointmentsIcon,
+    DashboardIcon,
+    LogoutIcon
 } from '../atoms/icons/sidebar-icons';
 
 interface SidebarProps {
@@ -81,12 +80,13 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon, iconName: 'dashboard', route: '/(tabs)', active: pathname === '/(tabs)' || pathname === '/' },
     { id: 'appointments', label: 'Appointments', Icon: AppointmentsIcon, iconName: 'event', route: '/appointments', active: pathname === '/appointments' },
-    { id: 'customers', label: 'Clients', Icon: CustomersIcon, iconName: 'people', route: null, active: false },
-    { id: 'services', label: 'Services', Icon: null, iconName: 'content-cut', route: null, active: false },
-    { id: 'staff', label: 'Staff Management', Icon: null, iconName: 'work', route: null, active: false },
-    { id: 'finances', label: 'Finances', Icon: null, iconName: 'attach-money', route: null, active: false },
-    { id: 'settings', label: 'Settings', Icon: null, iconName: 'settings', route: null, active: false },
-    { id: 'support', label: 'Support', Icon: null, iconName: 'help-outline', route: null, active: false },
+    // Temporarily hidden menu items
+    // { id: 'customers', label: 'Clients', Icon: CustomersIcon, iconName: 'people', route: null, active: false },
+    // { id: 'services', label: 'Services', Icon: null, iconName: 'content-cut', route: null, active: false },
+    // { id: 'staff', label: 'Staff Management', Icon: null, iconName: 'work', route: null, active: false },
+    // { id: 'finances', label: 'Finances', Icon: null, iconName: 'attach-money', route: null, active: false },
+    // { id: 'settings', label: 'Settings', Icon: null, iconName: 'settings', route: null, active: false },
+    // { id: 'support', label: 'Support', Icon: null, iconName: 'help-outline', route: null, active: false },
   ];
 
   const handleMenuItemPress = (item: { route: string | null }) => {

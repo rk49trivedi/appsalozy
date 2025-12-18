@@ -39,6 +39,9 @@ export const API_ENDPOINTS = {
   // Customers
   CUSTOMERS: '/customers',
   CUSTOMER_BY_ID: (id: string | number) => `/customers/${id}`,
+  
+  // Working Hours
+  WORKING_HOURS: '/working-hours',
 };
 
 export const getApiUrl = (endpoint: string): string => {

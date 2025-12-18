@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { View, TouchableOpacity, Platform, Modal } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import tw from 'twrnc';
+import { getThemeColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getThemeColors, SalozyColors } from '@/constants/colors';
-import { Text, Button } from '../atoms';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useState } from 'react';
+import { Modal, Platform, TouchableOpacity, View } from 'react-native';
+import tw from 'twrnc';
+import { Button, Text } from '../atoms';
 
 interface DatePickerProps {
   value?: string; // YYYY-MM-DD format
@@ -12,9 +12,11 @@ interface DatePickerProps {
   placeholder?: string;
   label?: string;
   onClear?: () => void;
+  minimumDate?: Date; // Minimum selectable date
+  maximumDate?: Date; // Maximum selectable date
 }
 
-export function DatePicker({ value, onChange, placeholder = 'Select date', label, onClear }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder = 'Select date', label, onClear, minimumDate, maximumDate }: DatePickerProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getThemeColors(isDark);
@@ -161,6 +163,8 @@ export function DatePicker({ value, onChange, placeholder = 'Select date', label
             mode="date"
             display="default"
             onChange={handleDateChange}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
           />
         )
       )}

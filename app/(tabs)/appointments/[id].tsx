@@ -1,4 +1,5 @@
 import { AppointmentsIcon, Badge, Text } from '@/components/atoms';
+import { ApproveAppointmentModal, StatusUpdateConfirmModal } from '@/components/molecules';
 import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -12,8 +13,6 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
-  Modal,
-  Pressable,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
@@ -93,6 +92,9 @@ export default function AppointmentDetailScreen() {
   const [seatLoading, setSeatLoading] = useState(false);
   const [selectedSeatId, setSelectedSeatId] = useState<number | null>(null);
   const [approving, setApproving] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'completed' | 'cancelled' | null>(null);
   const [showBottomButtons, setShowBottomButtons] = useState(true);
   const scrollY = useRef(new Animated.Value(0)).current;
   const bottomButtonOpacity = useRef(new Animated.Value(1)).current;
@@ -317,6 +319,7 @@ export default function AppointmentDetailScreen() {
   const canEdit = !['completed', 'cancelled', 'in_progress'].includes(appointment.status);
   const canDelete = ['pending', 'cancelled'].includes(appointment.status);
   const canApproveQuickly = displayStatus === 'pending' && !hasSeatOrStaff;
+  const canUpdateStatus = appointment.status === 'in_progress';
 
   const openApproveModal = async () => {
     setApproveModalVisible(true);
@@ -408,6 +411,59 @@ export default function AppointmentDetailScreen() {
     } finally {
       setApproving(false);
     }
+  };
+
+  const handleUpdateStatusClick = (status: 'completed' | 'cancelled') => {
+    setConfirmAction(status);
+    setConfirmModalVisible(true);
+  };
+
+  const handleConfirmStatusUpdate = async () => {
+    if (!appointment || !confirmAction) return;
+
+    try {
+      setUpdatingStatus(true);
+      setConfirmModalVisible(false);
+      
+      const response = await apiClient.put(
+        API_ENDPOINTS.APPOINTMENT_UPDATE_STATUS(appointment.id),
+        { status: confirmAction },
+      );
+
+      if (response.success) {
+        showToast.success(
+          response.message || `Appointment ${confirmAction === 'completed' ? 'completed' : 'cancelled'} successfully`,
+          'Success',
+        );
+        fetchAppointment();
+      } else {
+        showToast.error(
+          response.message || `Failed to ${confirmAction === 'completed' ? 'complete' : 'cancel'} appointment`,
+          'Error',
+        );
+      }
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      showToast.error(apiError.message || `Failed to ${confirmAction === 'completed' ? 'complete' : 'cancel'} appointment`, 'Error');
+    } finally {
+      setUpdatingStatus(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmModalVisible(false);
+    setConfirmAction(null);
+  };
+
+  const getStaffName = (): string | null => {
+    if (appointment?.status === 'in_progress' && appointment.services && Array.isArray(appointment.services)) {
+      const serviceWithStaff = appointment.services.find(service => service.staff_name);
+      if (serviceWithStaff?.staff_name) {
+        return String(serviceWithStaff.staff_name);
+      }
+    }
+    return null;
   };
 
   return (
@@ -522,6 +578,13 @@ export default function AppointmentDetailScreen() {
                     <Text style={[tw`text-sm mt-1`, { color: textSecondary }]}>
                       {appointment.user.phone}
                     </Text>
+                  )}
+                  {appointment.status === 'in_progress' && getStaffName() && (
+                    <View style={[tw`mt-2 px-3 py-1.5 rounded-lg self-start`, { backgroundColor: colors.secondaryBg }]}>
+                      <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.info }}>
+                        👤 Staff: {getStaffName()}
+                      </Text>
+                    </View>
                   )}
                 </View>
               </View>
@@ -797,8 +860,8 @@ export default function AppointmentDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Fixed Bottom Action Buttons - Only 2 buttons */}
-      {(canApproveQuickly || canEdit) && (
+      {/* Fixed Bottom Action Buttons */}
+      {(canApproveQuickly || canEdit || canUpdateStatus) && (
         <Animated.View
           style={[
             tw`absolute bottom-0 left-0 right-0`,
@@ -843,6 +906,54 @@ export default function AppointmentDetailScreen() {
                   </Text>
                 </TouchableOpacity>
               )}
+              {canUpdateStatus && (
+                <>
+                  <TouchableOpacity
+                    onPress={() => handleUpdateStatusClick('completed')}
+                    disabled={updatingStatus}
+                    style={[
+                      tw`flex-1 px-4 py-3 rounded-2xl`,
+                      { 
+                        backgroundColor: updatingStatus 
+                          ? colors.secondaryBg 
+                          : SalozyColors.status.success,
+                        opacity: updatingStatus ? 0.6 : 1,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    {updatingStatus ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                        Mark Complete
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleUpdateStatusClick('cancelled')}
+                    disabled={updatingStatus}
+                    style={[
+                      tw`flex-1 px-4 py-3 rounded-2xl`,
+                      { 
+                        backgroundColor: updatingStatus 
+                          ? colors.secondaryBg 
+                          : SalozyColors.status.error,
+                        opacity: updatingStatus ? 0.6 : 1,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    {updatingStatus ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                        Mark Cancelled
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
               {canEdit && (
                 <TouchableOpacity
                   onPress={() => router.push(`/(tabs)/appointments/${id}/edit`)}
@@ -863,199 +974,27 @@ export default function AppointmentDetailScreen() {
       )}
 
       {canApproveQuickly && (
-        <Modal
+        <ApproveAppointmentModal
           visible={approveModalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={closeApproveModal}
-        >
-          <Pressable
-            style={tw`flex-1 justify-end bg-black/40`}
-            onPress={closeApproveModal}
-          >
-            <SafeAreaView style={tw`flex-1 justify-end`} edges={['bottom']}>
-              <Pressable
-                onPress={(e) => e.stopPropagation()}
-                style={[
-                  tw`rounded-t-3xl px-5 pt-4 pb-6`,
-                  { backgroundColor: colors.background },
-                ]}
-              >
-              <View style={tw`items-center mb-3`}>
-                <View
-                  style={tw`w-10 h-1.5 rounded-full bg-gray-300 mb-3`}
-                />
-                <Text size="lg" weight="bold" variant="primary">
-                  Approve Appointment
-                </Text>
-                <Text size="sm" variant="secondary" style={tw`mt-1`}>
-                  {appointment.user?.name} • #{appointment.ticket_number}
-                </Text>
-              </View>
-
-              <View
-                style={[
-                  tw`flex-row items-center mb-4 p-3 rounded-2xl`,
-                  { backgroundColor: colors.secondaryBg },
-                ]}
-              >
-                <View style={tw`flex-1`}>
-                  <Text
-                    size="xs"
-                    variant="secondary"
-                    style={tw`mb-1`}
-                  >
-                    Date
-                  </Text>
-                  <Text
-                    size="sm"
-                    weight="semibold"
-                    variant="primary"
-                  >
-                    {formatDate(appointment.appointment_date)}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    tw`w-px h-8 mx-3`,
-                    { backgroundColor: colors.border },
-                  ]}
-                />
-                <View style={tw`flex-1`}>
-                  <Text
-                    size="xs"
-                    variant="secondary"
-                    style={tw`mb-1`}
-                  >
-                    Time
-                  </Text>
-                  <Text
-                    size="sm"
-                    weight="semibold"
-                    variant="primary"
-                  >
-                    {formatTime(appointment.appointment_time)}
-                  </Text>
-                </View>
-              </View>
-
-              <Text
-                size="sm"
-                weight="semibold"
-                variant="secondary"
-                style={tw`mb-2`}
-              >
-                Select Seat
-              </Text>
-
-              {seatLoading ? (
-                <View style={tw`py-4 items-center`}>
-                  <ActivityIndicator
-                    size="small"
-                    color={SalozyColors.primary.DEFAULT}
-                  />
-                </View>
-              ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={tw`flex-row gap-2 mb-4`}
-                >
-                  {seatOptions.map((seat) => (
-                    <TouchableOpacity
-                      key={seat.id}
-                      onPress={() => setSelectedSeatId(seat.id)}
-                      style={[
-                        tw`px-4 py-2 rounded-full border`,
-                        {
-                          borderColor:
-                            selectedSeatId === seat.id
-                              ? SalozyColors.primary.DEFAULT
-                              : colors.border,
-                          backgroundColor:
-                            selectedSeatId === seat.id
-                              ? SalozyColors.primary.DEFAULT
-                              : colors.secondaryBg,
-                        },
-                      ]}
-                    >
-                      <Text
-                        size="sm"
-                        weight="semibold"
-                        style={{
-                          color:
-                            selectedSeatId === seat.id
-                              ? '#FFFFFF'
-                              : colors.textPrimary,
-                        }}
-                      >
-                        {seat.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                  {seatOptions.length === 0 && !seatLoading && (
-                    <View style={tw`py-2`}>
-                      <Text size="sm" variant="secondary">
-                        No available seats found.
-                      </Text>
-                    </View>
-                  )}
-                </ScrollView>
-              )}
-
-              <View style={tw`flex-row gap-3 mt-2`}>
-                <TouchableOpacity
-                  onPress={closeApproveModal}
-                  style={[
-                    tw`flex-1 px-4 py-3 rounded-xl border`,
-                    { borderColor: colors.border },
-                  ]}
-                  disabled={approving}
-                >
-                  <Text
-                    size="sm"
-                    weight="semibold"
-                    variant="secondary"
-                    style={{ textAlign: 'center' }}
-                  >
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleApprove}
-                  disabled={approving || !selectedSeatId}
-                  style={[
-                    tw`flex-1 px-4 py-3 rounded-xl`,
-                    {
-                      backgroundColor:
-                        approving || !selectedSeatId
-                          ? colors.secondaryBg
-                          : SalozyColors.primary.DEFAULT,
-                      opacity: approving || !selectedSeatId ? 0.6 : 1,
-                    },
-                  ]}
-                >
-                  {approving ? (
-                    <ActivityIndicator size="small" color={selectedSeatId ? "#FFFFFF" : colors.textSecondary} />
-                  ) : (
-                    <Text
-                      size="sm"
-                      weight="bold"
-                      style={{ 
-                        color: selectedSeatId ? '#FFFFFF' : colors.textSecondary, 
-                        textAlign: 'center' 
-                      }}
-                    >
-                      Approve & Notify
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-              </Pressable>
-            </SafeAreaView>
-          </Pressable>
-        </Modal>
+          appointment={appointment}
+          seatOptions={seatOptions}
+          selectedSeatId={selectedSeatId}
+          loading={seatLoading}
+          approving={approving}
+          onSelectSeat={setSelectedSeatId}
+          onConfirm={handleApprove}
+          onCancel={closeApproveModal}
+          formatDate={formatDate}
+          formatTime={formatTime}
+        />
       )}
+
+      <StatusUpdateConfirmModal
+        visible={confirmModalVisible}
+        status={confirmAction || 'completed'}
+        onConfirm={handleConfirmStatusUpdate}
+        onCancel={handleCancelConfirm}
+      />
     </SafeAreaView>
   );
 }

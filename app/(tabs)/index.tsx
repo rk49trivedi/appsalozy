@@ -1,4 +1,4 @@
-import { AppointmentsIcon, CustomersIcon, RevenueIcon, SeatsIcon } from '@/components/atoms';
+import { AppointmentsIcon, CustomersIcon, RevenueIcon, SeatsIcon, Text } from '@/components/atoms';
 import { GlobalHeader } from '@/components/organisms';
 import { SalozyColors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '@/lib/api/config';
 import { showToast } from '@/lib/toast';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 
@@ -224,10 +224,13 @@ export default function DashboardScreen() {
         <View style={tw`px-4 mt-4`}>
           <View style={tw`flex-row flex-wrap gap-3`}>
             {/* Revenue Card */}
-            <View style={[
-              tw`rounded-2xl p-4 flex-1 min-w-[48%]`,
-              { backgroundColor: cardBg, borderWidth: 1, borderColor }
-            ]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={[
+                tw`rounded-2xl p-4 flex-1 min-w-[48%]`,
+                { backgroundColor: cardBg, borderWidth: 1, borderColor }
+              ]}
+            >
               <View style={tw`flex-row items-center justify-between mb-3`}>
                 <View style={[
                   tw`w-10 h-10 rounded-full items-center justify-center`,
@@ -239,23 +242,31 @@ export default function DashboardScreen() {
                   tw`px-2 py-1 rounded-full`,
                   { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
                 ]}>
-                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.status.success }]}>Today</Text>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                    Today
+                  </Text>
                 </View>
               </View>
-              <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
+              <Text size="2xl" weight="bold" variant="primary" style={tw`mb-1`}>
                 {currencySymbol} {dashboardData.revenueStats.grand_total.toLocaleString()}
               </Text>
-              <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Revenue</Text>
-              <Text style={[tw`text-sm font-semibold mt-1`, { color: '#22C55E' }]}>
-                {currencySymbol} {dashboardData.revenueStats.today.toFixed(2)} today
-              </Text>
-            </View>
+              <Text size="xs" variant="secondary">Total Revenue</Text>
+              <View style={tw`mt-2 p-2 rounded-xl`} style={{ backgroundColor: isDark ? 'rgba(34, 197, 94, 0.1)' : 'rgba(34, 197, 94, 0.05)' }}>
+                <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                  {currencySymbol} {dashboardData.revenueStats.today.toFixed(2)} today
+                </Text>
+              </View>
+            </TouchableOpacity>
 
             {/* Appointments Card */}
-            <View style={[
-              tw`rounded-2xl p-4 flex-1 min-w-[48%]`,
-              { backgroundColor: cardBg, borderWidth: 1, borderColor }
-            ]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/(tabs)/appointments')}
+              style={[
+                tw`rounded-2xl p-4 flex-1 min-w-[48%]`,
+                { backgroundColor: cardBg, borderWidth: 1, borderColor }
+              ]}
+            >
               <View style={tw`flex-row items-center justify-between mb-3`}>
                 <View style={[
                   tw`w-10 h-10 rounded-full items-center justify-center`,
@@ -267,28 +278,43 @@ export default function DashboardScreen() {
                   tw`px-2 py-1 rounded-full`,
                   { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
                 ]}>
-                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.primary.DEFAULT }]}>Today</Text>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                    Total
+                  </Text>
                 </View>
               </View>
-              <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
+              <Text size="2xl" weight="bold" variant="primary" style={tw`mb-1`}>
                 {dashboardData.appointmentStats.over_all_apoinment}
               </Text>
-              <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Appointments</Text>
-              <View style={tw`flex-row gap-2 mt-1`}>
-                <View style={tw`px-2 py-0.5 rounded-full bg-yellow-500/10`}>
-                  <Text style={tw`text-yellow-600 text-xs`}>{dashboardData.appointmentStats.today_pending} pending</Text>
+              <Text size="xs" variant="secondary">Total Appointments</Text>
+              <View style={tw`flex-row gap-2 mt-2`}>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                ]}>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.warning }}>
+                    {dashboardData.appointmentStats.today_pending} pending
+                  </Text>
                 </View>
-                <View style={tw`px-2 py-0.5 rounded-full bg-green-500/10`}>
-                  <Text style={tw`text-green-600 text-xs`}>{dashboardData.appointmentStats.today_completed} done</Text>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+                ]}>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                    {dashboardData.appointmentStats.today_completed} done
+                  </Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
 
             {/* Customers Card */}
-            <View style={[
-              tw`rounded-2xl p-4 flex-1 min-w-[48%] mt-3`,
-              { backgroundColor: cardBg, borderWidth: 1, borderColor }
-            ]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={[
+                tw`rounded-2xl p-4 flex-1 min-w-[48%] mt-3`,
+                { backgroundColor: cardBg, borderWidth: 1, borderColor }
+              ]}
+            >
               <View style={tw`flex-row items-center justify-between mb-3`}>
                 <View style={[
                   tw`w-10 h-10 rounded-full items-center justify-center`,
@@ -300,23 +326,44 @@ export default function DashboardScreen() {
                   tw`px-2 py-1 rounded-full`,
                   { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
                 ]}>
-                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.status.info }]}>New</Text>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.info }}>
+                    Total
+                  </Text>
                 </View>
               </View>
-              <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
+              <Text size="2xl" weight="bold" variant="primary" style={tw`mb-1`}>
                 {dashboardData.customerInsights.total_customers}
               </Text>
-              <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Customers</Text>
-              <Text style={[tw`text-sm font-semibold mt-1`, { color: SalozyColors.status.info }]}>
-                {dashboardData.customerInsights.new_customers} new • {dashboardData.customerInsights.repeat_customers} returning
-              </Text>
-            </View>
+              <Text size="xs" variant="secondary">Total Customers</Text>
+              <View style={tw`mt-2 flex-row gap-2`}>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                ]}>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.info }}>
+                    {dashboardData.customerInsights.new_customers} new
+                  </Text>
+                </View>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+                ]}>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                    {dashboardData.customerInsights.repeat_customers} returning
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
 
             {/* Seats Card */}
-            <View style={[
-              tw`rounded-2xl p-4 flex-1 min-w-[48%] mt-3`,
-              { backgroundColor: cardBg, borderWidth: 1, borderColor }
-            ]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push('/(tabs)/appointments/seat-map')}
+              style={[
+                tw`rounded-2xl p-4 flex-1 min-w-[48%] mt-3`,
+                { backgroundColor: cardBg, borderWidth: 1, borderColor }
+              ]}
+            >
               <View style={tw`flex-row items-center justify-between mb-3`}>
                 <View style={[
                   tw`w-10 h-10 rounded-full items-center justify-center`,
@@ -326,18 +373,38 @@ export default function DashboardScreen() {
                 </View>
                 <View style={[
                   tw`px-2 py-1 rounded-full`,
-                  { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                  { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
                 ]}>
-                  <Text style={[tw`text-xs font-semibold`, { color: SalozyColors.status.warning }]}>Available</Text>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                    {dashboardData.seatStats.available} available
+                  </Text>
                 </View>
               </View>
-              <Text style={[tw`text-2xl font-bold mb-1`, { color: textPrimary }]}>
+              <Text size="2xl" weight="bold" variant="primary" style={tw`mb-1`}>
                 {dashboardData.seatStats.total}
               </Text>
-              <Text style={[tw`text-xs`, { color: textSecondary }]}>Total Seats</Text>
-              <Text style={[tw`text-sm font-semibold mt-1`, { color: '#F97316' }]}> available 
-              </Text>
-            </View>
+              <Text size="xs" variant="secondary">Total Seats</Text>
+              <View style={tw`mt-2 flex-row gap-2 flex-wrap`}>
+                <View style={[
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+                ]}>
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                    {dashboardData.seatStats.occupied} occupied
+                  </Text>
+                </View>
+                {(dashboardData.seatStats.maintenance > 0 || dashboardData.seatStats.cleaning > 0) && (
+                  <View style={[
+                    tw`px-2 py-1 rounded-full`,
+                    { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                  ]}>
+                    <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.warning }}>
+                      {dashboardData.seatStats.maintenance + dashboardData.seatStats.cleaning} maintenance
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -354,14 +421,14 @@ export default function DashboardScreen() {
                 </Text>
               </View>
               <View style={tw`flex-row gap-3`}>
-                <View style={tw`flex-1 bg-primary/10 rounded-xl p-3`}>
+                <View style={[tw`flex-1 rounded-xl p-3`, { backgroundColor: 'rgba(154, 52, 18, 0.1)' }]}>
                   <Text style={[tw`text-xs mb-1`, { color: textSecondary }]}>Overall Plan Revenue</Text>
                   <Text style={[tw`text-xl font-bold`, { color: SalozyColors.primary.DEFAULT }]}>
                     {currencySymbol} {(dashboardData.revenueStats.plan_revenue || 0).toFixed(2)}
                   </Text>
                   <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>From all purchases</Text>
                 </View>
-                <View style={tw`flex-1 bg-success/10 rounded-xl p-3`}>
+                <View style={[tw`flex-1 rounded-xl p-3`, { backgroundColor: 'rgba(34, 197, 94, 0.1)' }]}>
                   <Text style={[tw`text-xs mb-1`, { color: textSecondary }]}>Today's Plan Revenue</Text>
                   <Text style={[tw`text-xl font-bold`, { color: SalozyColors.status.success }]}>
                     {currencySymbol} {(dashboardData.revenueStats.today_plan_revenue || 0).toFixed(2)}
@@ -383,30 +450,41 @@ export default function DashboardScreen() {
               <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
                 Today's Appointments
               </Text>
-              <TouchableOpacity>
-                <Text style={tw`text-orange-800 text-sm font-semibold`}>View All</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/appointments')}>
+                <Text size="sm" weight="semibold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                  View All
+                </Text>
               </TouchableOpacity>
             </View>
 
             {/* Quick Stats */}
             <View style={tw`flex-row gap-2 mb-4`}>
-              <View style={tw`flex-1 bg-blue-500/10 rounded-xl p-3 items-center`}>
-                <Text style={[tw`text-2xl font-bold`, { color: '#3B82F6' }]}>
+              <View style={[
+                tw`flex-1 rounded-xl p-3 items-center`,
+                { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+              ]}>
+                <Text size="2xl" weight="bold" style={{ color: SalozyColors.status.info }}>
                   {dashboardData.appointmentStats.today_total}
                 </Text>
-                <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>Total</Text>
+                <Text size="xs" variant="secondary" style={tw`mt-1`}>Total</Text>
               </View>
-              <View style={tw`flex-1 bg-yellow-500/10 rounded-xl p-3 items-center`}>
-                <Text style={[tw`text-2xl font-bold`, { color: '#FBBF24' }]}>
+              <View style={[
+                tw`flex-1 rounded-xl p-3 items-center`,
+                { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+              ]}>
+                <Text size="2xl" weight="bold" style={{ color: SalozyColors.status.warning }}>
                   {dashboardData.appointmentStats.today_pending}
                 </Text>
-                <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>Pending</Text>
+                <Text size="xs" variant="secondary" style={tw`mt-1`}>Pending</Text>
               </View>
-              <View style={tw`flex-1 bg-green-500/10 rounded-xl p-3 items-center`}>
-                <Text style={[tw`text-2xl font-bold`, { color: '#22C55E' }]}>
+              <View style={[
+                tw`flex-1 rounded-xl p-3 items-center`,
+                { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+              ]}>
+                <Text size="2xl" weight="bold" style={{ color: SalozyColors.status.success }}>
                   {dashboardData.appointmentStats.today_completed}
                 </Text>
-                <Text style={[tw`text-xs mt-1`, { color: textSecondary }]}>Completed</Text>
+                <Text size="xs" variant="secondary" style={tw`mt-1`}>Completed</Text>
               </View>
             </View>
 
@@ -416,37 +494,39 @@ export default function DashboardScreen() {
                 {dashboardData.upcomingAppointments.map((appointment) => {
                   const statusColor = getStatusColor(appointment.status);
                   return (
-                    <View
+                    <TouchableOpacity
                       key={appointment.id}
+                      activeOpacity={0.7}
+                      onPress={() => router.push(`/(tabs)/appointments/${appointment.id}`)}
                       style={[
                         tw`rounded-xl p-3`,
-                        { backgroundColor: isDark ? '#374151' : '#F9FAFB' }
+                        { backgroundColor: isDark ? '#374151' : '#F9FAFB', borderWidth: 1, borderColor }
                       ]}
                     >
                       <View style={tw`flex-row justify-between items-start mb-2`}>
-                        <View style={tw`flex-1`}>
-                          <View style={tw`flex-row items-center mb-1`}>
-                            <View style={[
-                              tw`w-8 h-8 rounded-full items-center justify-center mr-2`,
-                              { backgroundColor: '#9A3412' + '20' }
-                            ]}>
-                              <Text style={tw`text-orange-800 font-bold text-xs`}>
-                                {appointment.customer_name.charAt(0)}
-                              </Text>
-                            </View>
-                            <Text style={[tw`font-semibold flex-1`, { color: textPrimary }]}>
-                              {appointment.customer_name}
+                        <View style={tw`flex-row items-center flex-1`}>
+                          <View style={[
+                            tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                            { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+                          ]}>
+                            <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                              {appointment.customer_name.charAt(0).toUpperCase()}
                             </Text>
                           </View>
-                          <Text style={[tw`text-xs ml-10`, { color: textSecondary }]}>
-                            #{appointment.ticket_number}
-                          </Text>
+                          <View style={tw`flex-1 min-w-0`}>
+                            <Text size="sm" weight="semibold" variant="primary" numberOfLines={1}>
+                              {appointment.customer_name}
+                            </Text>
+                            <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
+                              #{appointment.ticket_number}
+                            </Text>
+                          </View>
                         </View>
                         <View style={[
-                          tw`px-2 py-1 rounded-full`,
+                          tw`px-2 py-1 rounded-full ml-2`,
                           { backgroundColor: statusColor.bg }
                         ]}>
-                          <Text style={[tw`text-xs font-semibold`, { color: statusColor.text }]}>
+                          <Text size="xs" weight="semibold" style={{ color: statusColor.text }}>
                             {appointment.status === 'pending' ? 'Pending' :
                              appointment.status === 'in_progress' ? 'In Progress' :
                              appointment.status === 'completed' ? 'Completed' : 'Cancelled'}
@@ -455,29 +535,38 @@ export default function DashboardScreen() {
                       </View>
                       <View style={tw`flex-row justify-between items-center mt-2`}>
                         <View>
-                          <Text style={[tw`text-sm font-medium`, { color: textPrimary }]}>
+                          <Text size="sm" weight="semibold" variant="primary">
                             {appointment.time}
                           </Text>
-                          <Text style={[tw`text-xs`, { color: textSecondary }]}>
+                          <Text size="xs" variant="secondary">
                             {appointment.date}
                           </Text>
                         </View>
-                        <View style={tw`px-2 py-1 rounded-full bg-blue-500/10`}>
-                          <Text style={tw`text-blue-600 text-xs`}>
+                        <View style={[
+                          tw`px-2 py-1 rounded-full`,
+                          { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                        ]}>
+                          <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.info }}>
                             {appointment.services_count} services
                           </Text>
                         </View>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>
             ) : (
               <View style={tw`items-center justify-center py-8`}>
-                <Text style={[tw`text-lg font-medium mb-1`, { color: textSecondary }]}>
+                <View style={[
+                  tw`w-16 h-16 rounded-full items-center justify-center mb-4`,
+                  { backgroundColor: isDark ? '#374151' : '#F9FAFB' }
+                ]}>
+                  <AppointmentsIcon size={32} color={textSecondary} />
+                </View>
+                <Text size="lg" weight="bold" variant="primary" style={tw`mb-2`}>
                   No Appointments Today
                 </Text>
-                <Text style={[tw`text-sm`, { color: textSecondary }]}>
+                <Text size="sm" variant="secondary" style={tw`text-center`}>
                   There are no appointments scheduled for today
                 </Text>
               </View>
@@ -495,28 +584,49 @@ export default function DashboardScreen() {
               Recent Activity
             </Text>
             {dashboardData.recentCompletedServices.length > 0 ? (
-              <View style={tw`gap-4`}>
+              <View style={tw`gap-3`}>
                 {dashboardData.recentCompletedServices.map((service, index) => {
-                  const colors = ['#3B82F6', '#22C55E', '#FBBF24', '#8B5CF6'];
-                  const color = colors[index % colors.length];
+                  const statusColors = [
+                    SalozyColors.status.info,
+                    SalozyColors.status.success,
+                    SalozyColors.status.warning,
+                    SalozyColors.primary.DEFAULT
+                  ];
+                  const color = statusColors[index % statusColors.length];
                   return (
-                    <View key={service.id} style={tw`flex-row`}>
-                      <View style={[
-                        tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-                        { backgroundColor: color + '20' }
-                      ]}>
-                        <Text style={tw`text-lg`}>✓</Text>
-                      </View>
-                      <View style={tw`flex-1`}>
-                        <Text style={[tw`font-semibold mb-1`, { color: textPrimary }]}>
-                          {service.service_name}
-                        </Text>
-                        <Text style={[tw`text-sm mb-1`, { color: textSecondary }]}>
-                          Completed by {service.customer_name} at {service.seat}
-                        </Text>
-                        <Text style={[tw`text-xs`, { color: textSecondary }]}>
-                          {formatDate(service.completed_at)} • {service.duration}
-                        </Text>
+                    <View
+                      key={service.id}
+                      style={[
+                        tw`rounded-xl p-3`,
+                        { backgroundColor: isDark ? '#374151' : '#F9FAFB', borderWidth: 1, borderColor }
+                      ]}
+                    >
+                      <View style={tw`flex-row items-start`}>
+                        <View style={[
+                          tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                          { backgroundColor: isDark ? `${color}33` : `${color}1A` }
+                        ]}>
+                          <Text size="base" weight="bold" style={{ color }}>
+                            ✓
+                          </Text>
+                        </View>
+                        <View style={tw`flex-1 min-w-0`}>
+                          <Text size="sm" weight="semibold" variant="primary" style={tw`mb-1`} numberOfLines={1}>
+                            {service.service_name}
+                          </Text>
+                          <Text size="xs" variant="secondary" style={tw`mb-1`} numberOfLines={1}>
+                            {service.customer_name} • {service.seat}
+                          </Text>
+                          <View style={tw`flex-row items-center gap-2 flex-wrap`}>
+                            <Text size="xs" variant="tertiary">
+                              {formatDate(service.completed_at)}
+                            </Text>
+                            <Text size="xs" variant="tertiary">•</Text>
+                            <Text size="xs" variant="tertiary">
+                              {service.duration}
+                            </Text>
+                          </View>
+                        </View>
                       </View>
                     </View>
                   );
@@ -524,7 +634,13 @@ export default function DashboardScreen() {
               </View>
             ) : (
               <View style={tw`items-center justify-center py-8`}>
-                <Text style={[tw`text-sm`, { color: textSecondary }]}>
+                <View style={[
+                  tw`w-16 h-16 rounded-full items-center justify-center mb-4`,
+                  { backgroundColor: isDark ? '#374151' : '#F9FAFB' }
+                ]}>
+                  <Text size="2xl" variant="secondary">✓</Text>
+                </View>
+                <Text size="sm" variant="secondary">
                   No recent activity
                 </Text>
               </View>
@@ -548,31 +664,36 @@ export default function DashboardScreen() {
                     key={index}
                     style={[
                       tw`rounded-xl p-3`,
-                      { backgroundColor: isDark ? '#374151' : '#F9FAFB' }
+                      { backgroundColor: isDark ? '#374151' : '#F9FAFB', borderWidth: 1, borderColor }
                     ]}
                   >
-                    <View style={tw`flex-row items-center justify-between`}>
+                    <View style={tw`flex-row items-center justify-between mb-2`}>
                       <View style={tw`flex-row items-center flex-1`}>
                         <View style={[
-                          tw`w-8 h-8 rounded-full items-center justify-center mr-3`,
-                          { backgroundColor: '#9A3412' + '20' }
+                          tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                          { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
                         ]}>
-                          <Text style={tw`text-orange-800 font-bold text-xs`}>
-                            {service.service_name.charAt(0)}
+                          <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                            {service.service_name.charAt(0).toUpperCase()}
                           </Text>
                         </View>
-                        <Text style={[tw`font-semibold flex-1`, { color: textPrimary }]}>
-                          {service.service_name}
-                        </Text>
+                        <View style={tw`flex-1 min-w-0`}>
+                          <Text size="sm" weight="semibold" variant="primary" numberOfLines={1}>
+                            {service.service_name}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                    <View style={tw`flex-row justify-between items-center mt-2 ml-11`}>
-                      <View style={tw`px-2 py-1 rounded-full bg-blue-500/10`}>
-                        <Text style={tw`text-blue-600 text-xs`}>
+                    <View style={tw`flex-row justify-between items-center`}>
+                      <View style={[
+                        tw`px-2 py-1 rounded-full`,
+                        { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                      ]}>
+                        <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.info }}>
                           {service.total_bookings} bookings
                         </Text>
                       </View>
-                      <Text style={[tw`font-semibold`, { color: '#22C55E' }]}>
+                      <Text size="base" weight="bold" style={{ color: SalozyColors.status.success }}>
                         {currencySymbol} {service.total_revenue.toFixed(2)}
                       </Text>
                     </View>
@@ -581,7 +702,13 @@ export default function DashboardScreen() {
               </View>
             ) : (
               <View style={tw`items-center justify-center py-8`}>
-                <Text style={[tw`text-sm`, { color: textSecondary }]}>
+                <View style={[
+                  tw`w-16 h-16 rounded-full items-center justify-center mb-4`,
+                  { backgroundColor: isDark ? '#374151' : '#F9FAFB' }
+                ]}>
+                  <Text size="2xl" variant="secondary">📊</Text>
+                </View>
+                <Text size="sm" variant="secondary">
                   No service data available
                 </Text>
               </View>

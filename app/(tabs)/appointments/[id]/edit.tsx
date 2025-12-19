@@ -1,4 +1,4 @@
-import { Input, Text } from '@/components/atoms';
+import { AppointmentsIcon, ClockIcon, CustomersIcon, Input, NotesIcon, SeatsIcon, ServicesIcon, StaffIcon, Text } from '@/components/atoms';
 import { DatePicker } from '@/components/molecules';
 import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
@@ -474,19 +474,32 @@ export default function EditAppointmentScreen() {
       />
 
       <ScrollView style={tw`flex-1`} contentContainerStyle={tw`pb-6`} showsVerticalScrollIndicator={false}>
-        <View style={tw`px-4 mt-4 gap-4`}>
+        <View style={tw`px-4 mt-4 gap-3`}>
           {/* Customer Selection */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Customer <Text style={{ color: SalozyColors.status.error }}>*</Text>
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+              ]}>
+                <CustomersIcon size={20} color={SalozyColors.primary.DEFAULT} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Customer
+                </Text>
+                <Text size="xs" variant="secondary">
+                  Required field
+                </Text>
+              </View>
+            </View>
             <TouchableOpacity
               onPress={() => setShowCustomerPicker(true)}
               style={[
-                tw`px-4 py-4 rounded-xl border flex-row items-center justify-between`,
+                tw`px-4 py-3.5 rounded-xl border flex-row items-center justify-between`,
                 { 
                   borderColor: user_id ? SalozyColors.primary.DEFAULT : colors.border,
                   backgroundColor: colors.secondaryBg
@@ -497,34 +510,47 @@ export default function EditAppointmentScreen() {
               <View style={tw`flex-1`}>
                 {user_id ? (
                   <>
-                    <Text variant="primary" weight="semibold">
+                    <Text size="sm" variant="primary" weight="semibold">
                       {getSelectedCustomer()?.name}
                     </Text>
-                    <Text size="sm" variant="secondary" style={tw`mt-1`}>
+                    <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
                       {getSelectedCustomer()?.email}
                     </Text>
                   </>
                 ) : (
-                  <Text variant="secondary">Select Customer</Text>
+                  <Text size="sm" variant="secondary">Select Customer</Text>
                 )}
               </View>
-              <Text size="lg" variant="secondary">▼</Text>
+              <Text size="base" variant="secondary">▼</Text>
             </TouchableOpacity>
           </View>
 
           {/* Appointment Date */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <View style={tw`flex-row items-center justify-between mb-4`}>
-              <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
-                Appointment Date <Text style={{ color: SalozyColors.status.error }}>*</Text>
-              </Text>
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View style={tw`flex-row items-center flex-1`}>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                ]}>
+                  <AppointmentsIcon size={20} color={SalozyColors.status.info} />
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" variant="primary">
+                    Appointment Date
+                  </Text>
+                  <Text size="xs" variant="secondary">
+                    Required field
+                  </Text>
+                </View>
+              </View>
               {isPastDate && (
-                <View style={[tw`px-3 py-1 rounded-full`, { backgroundColor: SalozyColors.status.error + '20' }]}>
+                <View style={[tw`px-2.5 py-1 rounded-full`, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)' }]}>
                   <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.error }}>
-                    Past Date
+                    Past
                   </Text>
                 </View>
               )}
@@ -565,7 +591,7 @@ export default function EditAppointmentScreen() {
               minimumDate={new Date()}
             />
             {appointment_date && !validateDate(appointment_date) && (
-              <Text size="sm" style={[tw`mt-2`, { color: SalozyColors.status.error }]}>
+              <Text size="xs" style={[tw`mt-2`, { color: SalozyColors.status.error }]}>
                 Date must be today or later
               </Text>
             )}
@@ -573,12 +599,25 @@ export default function EditAppointmentScreen() {
 
           {/* Appointment Time */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Appointment Time <Text style={{ color: SalozyColors.status.error }}>*</Text>
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+              ]}>
+                <ClockIcon size={20} color={SalozyColors.status.warning} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Appointment Time
+                </Text>
+                <Text size="xs" variant="secondary">
+                  Required field
+                </Text>
+              </View>
+            </View>
             <TouchableOpacity
               onPress={() => {
                 if (dayClosed) {
@@ -589,7 +628,7 @@ export default function EditAppointmentScreen() {
               }}
               disabled={dayClosed || !appointment_date}
               style={[
-                tw`px-4 py-4 rounded-xl border flex-row items-center justify-between`,
+                tw`px-4 py-3.5 rounded-xl border flex-row items-center justify-between`,
                 { 
                   borderColor: appointment_time ? SalozyColors.primary.DEFAULT : colors.border,
                   backgroundColor: colors.secondaryBg,
@@ -598,18 +637,18 @@ export default function EditAppointmentScreen() {
               ]}
               activeOpacity={0.7}
             >
-              <Text variant={appointment_time ? 'primary' : 'secondary'} weight={appointment_time ? 'semibold' : 'normal'}>
+              <Text size="sm" variant={appointment_time ? 'primary' : 'secondary'} weight={appointment_time ? 'semibold' : 'normal'}>
                 {appointment_time || 'Select time'}
               </Text>
-              <Text size="lg" variant="secondary">🕐</Text>
+              <ClockIcon size={18} color={colors.textSecondary} />
             </TouchableOpacity>
             {workingHourError && (
-              <Text size="sm" style={[tw`mt-2`, { color: SalozyColors.status.error }]}>
+              <Text size="xs" style={[tw`mt-2`, { color: SalozyColors.status.error }]}>
                 {workingHourError}
               </Text>
             )}
             {appointment_date && !dayClosed && (
-              <Text size="xs" style={[tw`mt-2`, { color: textSecondary }]}>
+              <Text size="xs" variant="tertiary" style={tw`mt-2`}>
                 Available time: {minTime} - {maxTime}
               </Text>
             )}
@@ -626,23 +665,36 @@ export default function EditAppointmentScreen() {
 
           {/* Status Selection */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Status <Text style={{ color: SalozyColors.status.error }}>*</Text>
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)' }
+              ]}>
+                <AppointmentsIcon size={20} color="#8B5CF6" />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Status
+                </Text>
+                <Text size="xs" variant="secondary">
+                  Required field
+                </Text>
+              </View>
+            </View>
             {appointment.status === 'in_progress' ? (
               <View style={[
-                tw`p-4 rounded-xl mb-2`,
-                { backgroundColor: SalozyColors.status.info + '20' }
+                tw`p-3 rounded-xl`,
+                { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
               ]}>
-                <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.info }}>
+                <Text size="xs" weight="semibold" style={{ color: SalozyColors.status.info }}>
                   This appointment service is currently in progress and cannot be changed.
                 </Text>
               </View>
             ) : (
-              <View style={tw`flex-row gap-3 flex-wrap`}>
+              <View style={tw`flex-row gap-2 flex-wrap`}>
                 {['pending', 'completed', 'cancelled'].map((s) => {
                   const isSelected = status === s;
                   const statusColors = {
@@ -655,15 +707,18 @@ export default function EditAppointmentScreen() {
                       key={s}
                       onPress={() => setStatus(s)}
                       style={[
-                        tw`px-4 py-3 rounded-xl border flex-1 min-w-[100px] items-center`,
+                        tw`px-3 py-2.5 rounded-xl border flex-1 min-w-[100px] items-center`,
                         { 
                           borderColor: isSelected ? statusColors[s as keyof typeof statusColors] : colors.border,
-                          backgroundColor: isSelected ? statusColors[s as keyof typeof statusColors] + '20' : 'transparent'
+                          backgroundColor: isSelected 
+                            ? (isDark ? `${statusColors[s as keyof typeof statusColors]}33` : `${statusColors[s as keyof typeof statusColors]}1A`)
+                            : colors.secondaryBg
                         }
                       ]}
                       activeOpacity={0.7}
                     >
                       <Text 
+                        size="xs"
                         weight={isSelected ? 'bold' : 'semibold'}
                         style={{ 
                           color: isSelected ? statusColors[s as keyof typeof statusColors] : colors.textPrimary
@@ -680,25 +735,38 @@ export default function EditAppointmentScreen() {
 
           {/* Services Selection */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={[tw`text-lg font-bold`, { color: textPrimary }]}>
-                Services <Text style={{ color: SalozyColors.status.error }}>*</Text>
-              </Text>
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View style={tw`flex-row items-center flex-1`}>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+                ]}>
+                  <ServicesIcon size={20} color={SalozyColors.status.success} />
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" variant="primary">
+                    Services
+                  </Text>
+                  <Text size="xs" variant="secondary">
+                    Required field
+                  </Text>
+                </View>
+              </View>
               {selectedServices.length > 0 && (
                 <View style={[
-                  tw`px-3 py-1 rounded-full`,
-                  { backgroundColor: SalozyColors.primary.DEFAULT + '20' }
+                  tw`px-2.5 py-1 rounded-full`,
+                  { backgroundColor: SalozyColors.primary.DEFAULT }
                 ]}>
-                  <Text size="sm" weight="semibold" style={{ color: SalozyColors.primary.DEFAULT }}>
-                    {selectedServices.length} selected
+                  <Text size="xs" weight="bold" style={{ color: '#FFFFFF' }}>
+                    {selectedServices.length}
                   </Text>
                 </View>
               )}
             </View>
-            <View style={tw`gap-3`}>
+            <View style={tw`gap-2`}>
               {formData.services.map((service) => {
                 const isSelected = selectedServices.includes(service.id);
                 // Use locked-in price from appointment if available
@@ -711,37 +779,39 @@ export default function EditAppointmentScreen() {
                     key={service.id}
                     onPress={() => handleServiceToggle(service.id)}
                     style={[
-                      tw`flex-row items-center p-4 rounded-xl border`,
+                      tw`flex-row items-center p-3 rounded-xl border`,
                       { 
                         borderColor: isSelected ? SalozyColors.primary.DEFAULT : colors.border,
-                        backgroundColor: isSelected ? SalozyColors.primary.DEFAULT + '10' : 'transparent'
+                        backgroundColor: isSelected 
+                          ? (isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)')
+                          : colors.secondaryBg
                       }
                     ]}
                     activeOpacity={0.7}
                   >
                     <View style={tw`flex-1`}>
-                      <Text variant="primary" weight={isSelected ? 'bold' : 'semibold'}>
+                      <Text size="sm" variant="primary" weight={isSelected ? 'bold' : 'semibold'}>
                         {displayName}
                       </Text>
-                      <View style={tw`flex-row items-center gap-3 mt-1`}>
-                        <Text size="sm" variant="secondary">
+                      <View style={tw`flex-row items-center gap-2 mt-1`}>
+                        <Text size="xs" variant="secondary">
                           {appointment.currency_symbol || '₹'}{((displayPrice ?? 0) || 0).toFixed(2)}
                         </Text>
-                        <Text size="sm" variant="secondary">•</Text>
-                        <Text size="sm" variant="secondary">
+                        <Text size="xs" variant="tertiary">•</Text>
+                        <Text size="xs" variant="secondary">
                           {service.duration_minutes || 0} min
                         </Text>
                       </View>
                     </View>
                     <View style={[
-                      tw`w-7 h-7 rounded-full border-2 items-center justify-center`,
+                      tw`w-6 h-6 rounded-full border-2 items-center justify-center`,
                       { 
                         borderColor: isSelected ? SalozyColors.primary.DEFAULT : colors.border,
                         backgroundColor: isSelected ? SalozyColors.primary.DEFAULT : 'transparent'
                       }
                     ]}>
                       {isSelected && (
-                        <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' }}>✓</Text>
+                        <Text size="xs" weight="bold" style={{ color: '#FFFFFF' }}>✓</Text>
                       )}
                     </View>
                   </TouchableOpacity>
@@ -750,10 +820,10 @@ export default function EditAppointmentScreen() {
             </View>
             {selectedServices.length > 0 && (
               <View style={[
-                tw`mt-4 p-3 rounded-xl`,
-                { backgroundColor: SalozyColors.status.success + '10' }
+                tw`mt-3 p-3 rounded-xl`,
+                { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
               ]}>
-                <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.success }}>
+                <Text size="sm" weight="bold" style={{ color: SalozyColors.status.success }}>
                   Total: {appointment.currency_symbol || '₹'}{calculateTotalPrice().toFixed(2)}
                 </Text>
               </View>
@@ -762,20 +832,29 @@ export default function EditAppointmentScreen() {
 
           {/* Seat Selection */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Seat {status !== 'pending' ? (
-                <Text style={{ color: SalozyColors.status.error }}>*</Text>
-              ) : (
-                <Text style={{ color: textSecondary }}>(Optional)</Text>
-              )}
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+              ]}>
+                <SeatsIcon size={20} color={SalozyColors.status.warning} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Seat
+                </Text>
+                <Text size="xs" variant="secondary">
+                  {status !== 'pending' ? 'Required field' : 'Optional'}
+                </Text>
+              </View>
+            </View>
             <TouchableOpacity
               onPress={() => setShowSeatPicker(true)}
               style={[
-                tw`px-4 py-4 rounded-xl border flex-row items-center justify-between`,
+                tw`px-4 py-3.5 rounded-xl border flex-row items-center justify-between`,
                 { 
                   borderColor: seat_id ? SalozyColors.primary.DEFAULT : colors.border,
                   backgroundColor: colors.secondaryBg
@@ -783,13 +862,13 @@ export default function EditAppointmentScreen() {
               ]}
               activeOpacity={0.7}
             >
-              <Text variant={seat_id ? 'primary' : 'secondary'} weight={seat_id ? 'semibold' : 'normal'}>
+              <Text size="sm" variant={seat_id ? 'primary' : 'secondary'} weight={seat_id ? 'semibold' : 'normal'}>
                 {seat_id ? getSelectedSeat()?.name : status === 'pending' ? 'Select Seat (Optional)' : 'Select Seat'}
               </Text>
-              <Text size="lg" variant="secondary">▼</Text>
+              <Text size="base" variant="secondary">▼</Text>
             </TouchableOpacity>
             {status !== 'pending' && !seat_id && (
-              <Text size="sm" style={[tw`mt-2`, { color: SalozyColors.status.error }]}>
+              <Text size="xs" style={[tw`mt-2`, { color: SalozyColors.status.error }]}>
                 Seat is required when status is not pending
               </Text>
             )}
@@ -797,16 +876,29 @@ export default function EditAppointmentScreen() {
 
           {/* Staff Selection */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Staff <Text style={{ color: textSecondary }}>(Optional)</Text>
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+              ]}>
+                <StaffIcon size={20} color={SalozyColors.status.info} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Staff
+                </Text>
+                <Text size="xs" variant="secondary">
+                  Optional
+                </Text>
+              </View>
+            </View>
             <TouchableOpacity
               onPress={() => setShowStaffPicker(true)}
               style={[
-                tw`px-4 py-4 rounded-xl border flex-row items-center justify-between`,
+                tw`px-4 py-3.5 rounded-xl border flex-row items-center justify-between`,
                 { 
                   borderColor: staff_id ? SalozyColors.primary.DEFAULT : colors.border,
                   backgroundColor: colors.secondaryBg
@@ -817,39 +909,53 @@ export default function EditAppointmentScreen() {
               <View style={tw`flex-1`}>
                 {staff_id ? (
                   <>
-                    <Text variant="primary" weight="semibold">
+                    <Text size="sm" variant="primary" weight="semibold">
                       {getSelectedStaff()?.name}
                     </Text>
-                    <Text size="sm" variant="secondary" style={tw`mt-1`}>
+                    <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
                       {getSelectedStaff()?.email}
                     </Text>
                   </>
                 ) : (
-                  <Text variant="secondary">Select Staff (Optional)</Text>
+                  <Text size="sm" variant="secondary">Select Staff (Optional)</Text>
                 )}
               </View>
-              <Text size="lg" variant="secondary">▼</Text>
+              <Text size="base" variant="secondary">▼</Text>
             </TouchableOpacity>
           </View>
 
           {/* Notes */}
           <View style={[
-            tw`rounded-2xl p-5`,
+            tw`rounded-2xl p-4`,
             { backgroundColor: cardBg, borderWidth: 1, borderColor }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Notes <Text style={{ color: textSecondary }}>(Optional)</Text>
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(107, 114, 128, 0.2)' : 'rgba(107, 114, 128, 0.1)' }
+              ]}>
+                <NotesIcon size={20} color={colors.textSecondary} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Notes
+                </Text>
+                <Text size="xs" variant="secondary">
+                  Optional
+                </Text>
+              </View>
+            </View>
             <Input
               placeholder="Add any additional notes..."
               value={notes}
               onChangeText={setNotes}
               multiline
               numberOfLines={4}
+              leftIcon={<NotesIcon size={20} color={colors.placeholder} />}
               containerStyle={tw`mb-0`}
               maxLength={500}
             />
-            <Text size="xs" variant="secondary" style={tw`mt-1`}>
+            <Text size="xs" variant="tertiary" style={tw`mt-1`}>
               {notes.length}/500 characters
             </Text>
           </View>
@@ -861,7 +967,7 @@ export default function EditAppointmentScreen() {
             style={[
               tw`px-6 py-4 rounded-xl mt-2`,
               { 
-                backgroundColor: submitting ? SalozyColors.primary.DEFAULT : (dayClosed ? colors.secondaryBg : SalozyColors.primary.DEFAULT),
+                backgroundColor: (submitting || dayClosed) ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
                 opacity: (submitting || dayClosed) ? 0.6 : 1
               }
             ]}
@@ -869,13 +975,13 @@ export default function EditAppointmentScreen() {
           >
             {submitting ? (
               <View style={tw`flex-row items-center justify-center`}>
-                <ActivityIndicator size="small" color="#FFFFFF" style={tw`mr-2`} />
-                <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                <ActivityIndicator size="small" color={SalozyColors.primary.DEFAULT} style={tw`mr-2`} />
+                <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT, textAlign: 'center' }}>
                   Processing...
                 </Text>
               </View>
             ) : (
-              <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+              <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
                 Update Appointment
               </Text>
             )}
@@ -891,9 +997,15 @@ export default function EditAppointmentScreen() {
             { backgroundColor: cardBg }
           ]}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Select Customer</Text>
-              <TouchableOpacity onPress={() => setShowCustomerPicker(false)}>
-                <Text size="lg" variant="primary" weight="bold">✕</Text>
+              <Text size="lg" weight="bold" variant="primary">Select Customer</Text>
+              <TouchableOpacity 
+                onPress={() => setShowCustomerPicker(false)}
+                style={[
+                  tw`w-8 h-8 rounded-full items-center justify-center`,
+                  { backgroundColor: colors.secondaryBg }
+                ]}
+              >
+                <Text size="base" variant="secondary" weight="bold">✕</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={tw`max-h-96`}>
@@ -905,22 +1017,38 @@ export default function EditAppointmentScreen() {
                     setShowCustomerPicker(false);
                   }}
                   style={[
-                    tw`px-4 py-4 border-b rounded-lg mb-2`,
+                    tw`px-4 py-3 rounded-xl mb-2`,
                     { 
-                      borderColor: colors.border,
-                      backgroundColor: user_id === customer.id.toString() ? SalozyColors.primary.DEFAULT + '10' : 'transparent'
+                      backgroundColor: user_id === customer.id.toString() 
+                        ? (isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)')
+                        : colors.secondaryBg,
+                      borderWidth: 1,
+                      borderColor: user_id === customer.id.toString() ? SalozyColors.primary.DEFAULT : colors.border
                     }
                   ]}
+                  activeOpacity={0.7}
                 >
-                  <Text variant="primary" weight={user_id === customer.id.toString() ? 'bold' : 'semibold'}>
-                    {customer.name}
-                  </Text>
-                  <Text size="sm" variant="secondary" style={tw`mt-1`}>
-                    {customer.email}
-                  </Text>
-                  {customer.phone && (
-                    <Text size="sm" variant="secondary">{customer.phone}</Text>
-                  )}
+                  <View style={tw`flex-row items-center`}>
+                    <View style={[
+                      tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                      { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+                    ]}>
+                      <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                        {customer.name.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={tw`flex-1`}>
+                      <Text size="sm" variant="primary" weight={user_id === customer.id.toString() ? 'bold' : 'semibold'}>
+                        {customer.name}
+                      </Text>
+                      <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
+                        {customer.email}
+                      </Text>
+                      {customer.phone && (
+                        <Text size="xs" variant="tertiary" style={tw`mt-0.5`}>{customer.phone}</Text>
+                      )}
+                    </View>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -936,9 +1064,15 @@ export default function EditAppointmentScreen() {
             { backgroundColor: cardBg }
           ]}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Select Seat</Text>
-              <TouchableOpacity onPress={() => setShowSeatPicker(false)}>
-                <Text size="lg" variant="primary" weight="bold">✕</Text>
+              <Text size="lg" weight="bold" variant="primary">Select Seat</Text>
+              <TouchableOpacity 
+                onPress={() => setShowSeatPicker(false)}
+                style={[
+                  tw`w-8 h-8 rounded-full items-center justify-center`,
+                  { backgroundColor: colors.secondaryBg }
+                ]}
+              >
+                <Text size="base" variant="secondary" weight="bold">✕</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={tw`max-h-64`}>
@@ -949,14 +1083,18 @@ export default function EditAppointmentScreen() {
                     setShowSeatPicker(false);
                   }}
                   style={[
-                    tw`px-4 py-4 border-b rounded-lg mb-2`,
+                    tw`px-4 py-3 rounded-xl mb-2`,
                     { 
-                      borderColor: colors.border,
-                      backgroundColor: !seat_id ? SalozyColors.primary.DEFAULT + '10' : 'transparent'
+                      backgroundColor: !seat_id 
+                        ? (isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)')
+                        : colors.secondaryBg,
+                      borderWidth: 1,
+                      borderColor: !seat_id ? SalozyColors.primary.DEFAULT : colors.border
                     }
                   ]}
+                  activeOpacity={0.7}
                 >
-                  <Text variant="primary" weight={!seat_id ? 'bold' : 'semibold'}>None</Text>
+                  <Text size="sm" variant="primary" weight={!seat_id ? 'bold' : 'semibold'}>None</Text>
                 </TouchableOpacity>
               )}
               {formData.seats.map((seat) => (
@@ -967,16 +1105,28 @@ export default function EditAppointmentScreen() {
                     setShowSeatPicker(false);
                   }}
                   style={[
-                    tw`px-4 py-4 border-b rounded-lg mb-2`,
+                    tw`px-4 py-3 rounded-xl mb-2`,
                     { 
-                      borderColor: colors.border,
-                      backgroundColor: seat_id === seat.id.toString() ? SalozyColors.primary.DEFAULT + '10' : 'transparent'
+                      backgroundColor: seat_id === seat.id.toString() 
+                        ? (isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)')
+                        : colors.secondaryBg,
+                      borderWidth: 1,
+                      borderColor: seat_id === seat.id.toString() ? SalozyColors.primary.DEFAULT : colors.border
                     }
                   ]}
+                  activeOpacity={0.7}
                 >
-                  <Text variant="primary" weight={seat_id === seat.id.toString() ? 'bold' : 'semibold'}>
-                    {seat.name}
-                  </Text>
+                  <View style={tw`flex-row items-center`}>
+                    <View style={[
+                      tw`w-8 h-8 rounded-full items-center justify-center mr-3`,
+                      { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                    ]}>
+                      <SeatsIcon size={16} color={SalozyColors.status.warning} />
+                    </View>
+                    <Text size="sm" variant="primary" weight={seat_id === seat.id.toString() ? 'bold' : 'semibold'}>
+                      {seat.name}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -992,9 +1142,15 @@ export default function EditAppointmentScreen() {
             { backgroundColor: cardBg }
           ]}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Select Staff</Text>
-              <TouchableOpacity onPress={() => setShowStaffPicker(false)}>
-                <Text size="lg" variant="primary" weight="bold">✕</Text>
+              <Text size="lg" weight="bold" variant="primary">Select Staff</Text>
+              <TouchableOpacity 
+                onPress={() => setShowStaffPicker(false)}
+                style={[
+                  tw`w-8 h-8 rounded-full items-center justify-center`,
+                  { backgroundColor: colors.secondaryBg }
+                ]}
+              >
+                <Text size="base" variant="secondary" weight="bold">✕</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={tw`max-h-64`}>
@@ -1004,14 +1160,18 @@ export default function EditAppointmentScreen() {
                   setShowStaffPicker(false);
                 }}
                 style={[
-                  tw`px-4 py-4 border-b rounded-lg mb-2`,
+                  tw`px-4 py-3 rounded-xl mb-2`,
                   { 
-                    borderColor: colors.border,
-                    backgroundColor: !staff_id ? SalozyColors.primary.DEFAULT + '10' : 'transparent'
+                    backgroundColor: !staff_id 
+                      ? (isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)')
+                      : colors.secondaryBg,
+                    borderWidth: 1,
+                    borderColor: !staff_id ? SalozyColors.primary.DEFAULT : colors.border
                   }
                 ]}
+                activeOpacity={0.7}
               >
-                <Text variant="primary" weight={!staff_id ? 'bold' : 'semibold'}>None</Text>
+                <Text size="sm" variant="primary" weight={!staff_id ? 'bold' : 'semibold'}>None</Text>
               </TouchableOpacity>
               {formData.staff.map((s) => (
                 <TouchableOpacity
@@ -1021,17 +1181,31 @@ export default function EditAppointmentScreen() {
                     setShowStaffPicker(false);
                   }}
                   style={[
-                    tw`px-4 py-4 border-b rounded-lg mb-2`,
+                    tw`px-4 py-3 rounded-xl mb-2`,
                     { 
-                      borderColor: colors.border,
-                      backgroundColor: staff_id === s.id.toString() ? SalozyColors.primary.DEFAULT + '10' : 'transparent'
+                      backgroundColor: staff_id === s.id.toString() 
+                        ? (isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)')
+                        : colors.secondaryBg,
+                      borderWidth: 1,
+                      borderColor: staff_id === s.id.toString() ? SalozyColors.primary.DEFAULT : colors.border
                     }
                   ]}
+                  activeOpacity={0.7}
                 >
-                  <Text variant="primary" weight={staff_id === s.id.toString() ? 'bold' : 'semibold'}>
-                    {s.name}
-                  </Text>
-                  <Text size="sm" variant="secondary" style={tw`mt-1`}>{s.email}</Text>
+                  <View style={tw`flex-row items-center`}>
+                    <View style={[
+                      tw`w-8 h-8 rounded-full items-center justify-center mr-3`,
+                      { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                    ]}>
+                      <StaffIcon size={16} color={SalozyColors.status.info} />
+                    </View>
+                    <View style={tw`flex-1`}>
+                      <Text size="sm" variant="primary" weight={staff_id === s.id.toString() ? 'bold' : 'semibold'}>
+                        {s.name}
+                      </Text>
+                      <Text size="xs" variant="secondary" style={tw`mt-0.5`}>{s.email}</Text>
+                    </View>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>

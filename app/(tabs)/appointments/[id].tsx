@@ -1,4 +1,4 @@
-import { AppointmentsIcon, Badge, Text } from '@/components/atoms';
+import { AppointmentsIcon, Badge, ClockIcon, CustomersIcon, NotesIcon, RevenueIcon, SeatsIcon, ServicesIcon, StaffIcon, Text } from '@/components/atoms';
 import { ApproveAppointmentModal, StatusUpdateConfirmModal } from '@/components/molecules';
 import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
@@ -542,49 +542,37 @@ export default function AppointmentDetailScreen() {
         <View style={tw`px-4 mt-2 gap-4`}>
           {/* Header Card with Customer Info */}
           <View style={[
-            tw`rounded-3xl p-5`,
+            tw`rounded-2xl p-4`,
             { 
               backgroundColor: cardBg, 
               borderWidth: 1, 
               borderColor,
-              shadowColor: isDark ? '#000000' : '#000000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 3,
             }
           ]}>
             <View style={tw`flex-row items-center justify-between mb-4`}>
-              <View style={tw`flex-row items-center flex-1`}>
+                <View style={tw`flex-row items-center flex-1 min-w-0`}>
                 <View
                   style={[
-                    tw`w-16 h-16 rounded-full items-center justify-center mr-4`,
-                    { backgroundColor: statusConfig.bg },
+                    tw`w-12 h-12 rounded-full items-center justify-center mr-3 flex-shrink-0`,
+                    { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' },
                   ]}
                 >
-                  <AppointmentsIcon
-                    size={28}
-                    color={statusConfig.text}
+                  <CustomersIcon
+                    size={24}
+                    color={SalozyColors.primary.DEFAULT}
                   />
                 </View>
-                <View style={tw`flex-1`}>
-                  <Text style={[tw`text-xl font-bold mb-1`, { color: textPrimary }]}>
+                <View style={tw`flex-1 min-w-0`}>
+                  <Text size="lg" weight="bold" variant="primary" style={tw`mb-1`} numberOfLines={1}>
                     {appointment.user?.name || 'Unknown User'}
                   </Text>
-                  <Text style={[tw`text-sm`, { color: textSecondary }]}>
+                  <Text size="sm" variant="secondary" numberOfLines={1}>
                     {appointment.user?.email || 'No email'}
                   </Text>
                   {appointment.user?.phone && (
-                    <Text style={[tw`text-sm mt-1`, { color: textSecondary }]}>
+                    <Text size="sm" variant="secondary" style={tw`mt-1`} numberOfLines={1}>
                       {appointment.user.phone}
                     </Text>
-                  )}
-                  {appointment.status === 'in_progress' && getStaffName() && (
-                    <View style={[tw`mt-2 px-3 py-1.5 rounded-lg self-start`, { backgroundColor: colors.secondaryBg }]}>
-                      <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.info }}>
-                        👤 Staff: {getStaffName()}
-                      </Text>
-                    </View>
                   )}
                 </View>
               </View>
@@ -597,63 +585,100 @@ export default function AppointmentDetailScreen() {
               </Badge>
             </View>
             
-            {/* Ticket Number */}
-            <View style={[
-              tw`flex-row items-center justify-between pt-4 border-t`,
-              { borderColor: colors.border }
-            ]}>
-              <Text style={[tw`text-sm font-semibold`, { color: textSecondary }]}>
-                Ticket Number
-              </Text>
-              <Text style={[tw`text-base font-bold`, { color: SalozyColors.primary.DEFAULT }]}>
-                #{appointment.ticket_number}
-              </Text>
+            {/* Ticket Number and Staff Info */}
+            <View style={[tw`pt-3 border-t`, { borderColor: colors.border }]}>
+              <View style={tw`flex-row items-center justify-between mb-2`}>
+              <View style={tw`flex-1`}>
+                <Text size="xs" variant="secondary" style={{ marginBottom: 4 }}>Ticket Number</Text>
+                  <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                    #{appointment.ticket_number}
+                  </Text>
+                </View>
+              </View>
+              {appointment.status === 'in_progress' && getStaffName() && (
+                <View style={[tw`px-3 py-1.5 rounded-lg flex-row items-center gap-2 self-start`, { backgroundColor: colors.secondaryBg }]}>
+                  <StaffIcon size={16} color={SalozyColors.status.info} />
+                  <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.info }}>
+                    {getStaffName()}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
           {/* Appointment Details Card */}
           <View style={[
-            tw`rounded-3xl p-5`,
+            tw`rounded-2xl p-4`,
             { 
               backgroundColor: cardBg, 
               borderWidth: 1, 
               borderColor,
-              shadowColor: isDark ? '#000000' : '#000000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 3,
             }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Appointment Details
-            </Text>
-            <View style={tw`gap-4`}>
+            <View style={tw`flex-row items-center mb-3`}>
               <View style={[
-                tw`flex-row items-center p-4 rounded-2xl`,
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+              ]}>
+                <AppointmentsIcon size={20} color={SalozyColors.status.info} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">Appointment Details</Text>
+                <Text size="xs" variant="secondary">Date, time, and location</Text>
+              </View>
+            </View>
+            <View style={tw`gap-3`}>
+              <View style={[
+                tw`p-3 rounded-xl flex-row items-center`,
                 { backgroundColor: colors.secondaryBg }
               ]}>
-                <View style={tw`flex-1`}>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>Date</Text>
-                  <Text size="lg" weight="bold" variant="primary">
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                ]}>
+                  <AppointmentsIcon size={18} color={SalozyColors.status.info} />
+                </View>
+                <View style={tw`flex-1 min-w-0`}>
+                  <Text size="xs" variant="secondary" style={{ marginBottom: 4 }}>Date</Text>
+                  <Text size="sm" weight="bold" variant="primary" numberOfLines={2}>
                     {formatDate(appointment.appointment_date)}
                   </Text>
                 </View>
-                <View style={[tw`w-px h-12 mx-4`, { backgroundColor: colors.border }]} />
-                <View style={tw`flex-1`}>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>Time</Text>
-                  <Text size="lg" weight="bold" variant="primary">
+              </View>
+              <View style={[
+                tw`p-3 rounded-xl flex-row items-center`,
+                { backgroundColor: colors.secondaryBg }
+              ]}>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)' }
+                ]}>
+                  <ClockIcon size={18} color={SalozyColors.status.warning} />
+                </View>
+                <View style={tw`flex-1 min-w-0`}>
+                  <Text size="xs" variant="secondary" style={{ marginBottom: 4 }}>Time</Text>
+                  <Text size="sm" weight="bold" variant="primary">
                     {formatTime(appointment.appointment_time)}
                   </Text>
                 </View>
               </View>
               {appointment.branch && (
                 <View style={[
-                  tw`p-4 rounded-2xl`,
+                  tw`p-3 rounded-xl flex-row items-center`,
                   { backgroundColor: colors.secondaryBg }
                 ]}>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>Branch</Text>
-                  <Text size="base" weight="semibold" variant="primary">{appointment.branch.name}</Text>
+                  <View style={[
+                    tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                    { backgroundColor: isDark ? 'rgba(107, 114, 128, 0.2)' : 'rgba(107, 114, 128, 0.1)' }
+                  ]}>
+                    <AppointmentsIcon size={18} color={colors.textSecondary} />
+                  </View>
+                  <View style={tw`flex-1 min-w-0`}>
+                    <Text size="xs" variant="secondary" style={tw`mb-1`}>Branch</Text>
+                    <Text size="sm" weight="semibold" variant="primary" numberOfLines={1}>
+                      {appointment.branch.name}
+                    </Text>
+                  </View>
                 </View>
               )}
             </View>
@@ -662,21 +687,27 @@ export default function AppointmentDetailScreen() {
           {((appointment.services && Array.isArray(appointment.services) && appointment.services.length > 0) || 
             (appointment.appointment_services && Array.isArray(appointment.appointment_services) && appointment.appointment_services.length > 0)) && (
             <View style={[
-              tw`rounded-3xl p-5`,
+              tw`rounded-2xl p-4`,
               { 
                 backgroundColor: cardBg, 
                 borderWidth: 1, 
                 borderColor,
-                shadowColor: isDark ? '#000000' : '#000000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 3,
               }
             ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Services ({(appointment.appointment_services?.length || appointment.services?.length || 0)})
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+              ]}>
+                <ServicesIcon size={20} color={SalozyColors.status.success} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">
+                  Services ({(appointment.appointment_services?.length || appointment.services?.length || 0)})
+                </Text>
+                <Text size="xs" variant="secondary">Selected services and pricing</Text>
+              </View>
+            </View>
               <View style={tw`gap-2`}>
                 {(() => {
                   if (appointment.appointment_services && Array.isArray(appointment.appointment_services) && appointment.appointment_services.length > 0) {
@@ -690,16 +721,16 @@ export default function AppointmentDetailScreen() {
                         <View 
                           key={`apt-service-${aptService.id || index}`} 
                           style={[
-                            tw`flex-row justify-between items-center p-4 rounded-2xl mb-2`,
+                            tw`flex-row justify-between items-center p-3 rounded-xl mb-2`,
                             { backgroundColor: colors.secondaryBg }
                           ]}
                         >
                           <View style={tw`flex-1 mr-3`}>
-                            <Text size="base" weight="semibold" variant="primary">
+                            <Text size="sm" weight="semibold" variant="primary">
                               {String(serviceName)}
                             </Text>
                           </View>
-                          <Text size="lg" weight="bold" variant="primary">
+                          <Text size="base" weight="bold" variant="primary">
                             {String(appointment.currency_symbol || '₹')}{String(servicePrice)}
                           </Text>
                         </View>
@@ -715,36 +746,40 @@ export default function AppointmentDetailScreen() {
                         <View 
                           key={`service-${service.id || index}`} 
                           style={[
-                            tw`flex-row justify-between items-center p-4 rounded-2xl mb-2`,
+                            tw`p-3 rounded-xl mb-2`,
                             { backgroundColor: colors.secondaryBg }
                           ]}
                         >
-                          <View style={tw`flex-1 mr-3`}>
-                            <Text size="base" weight="semibold" variant="primary" style={tw`mb-1`}>
-                              {String(service.name)}
+                          <View style={tw`flex-row justify-between items-start mb-2`}>
+                            <View style={tw`flex-1 mr-3`}>
+                              <Text size="sm" weight="semibold" variant="primary">
+                                {String(service.name)}
+                              </Text>
+                            </View>
+                            <Text size="base" weight="bold" variant="primary">
+                              {String(appointment.currency_symbol || '₹')}{String(servicePrice)}
                             </Text>
-                            {(service.seat_name || service.staff_name) && (
-                              <View style={tw`mt-2 flex-row gap-3 flex-wrap`}>
-                                {service.seat_name && (
-                                  <View style={[tw`px-2 py-1 rounded-lg`, { backgroundColor: cardBg }]}>
-                                    <Text size="xs" variant="secondary" weight="medium">
-                                      🪑 Seat: {String(service.seat_name)}
-                                    </Text>
-                                  </View>
-                                )}
-                                {service.staff_name && (
-                                  <View style={[tw`px-2 py-1 rounded-lg`, { backgroundColor: cardBg }]}>
-                                    <Text size="xs" variant="secondary" weight="medium">
-                                      👤 Staff: {String(service.staff_name)}
-                                    </Text>
-                                  </View>
-                                )}
-                              </View>
-                            )}
                           </View>
-                          <Text size="lg" weight="bold" variant="primary">
-                            {String(appointment.currency_symbol || '₹')}{String(servicePrice)}
-                          </Text>
+                          {(service.seat_name || service.staff_name) && (
+                            <View style={tw`flex-row gap-2 flex-wrap mt-2`}>
+                              {service.seat_name && (
+                                <View style={[tw`px-2 py-1 rounded-lg flex-row items-center gap-1.5`, { backgroundColor: cardBg }]}>
+                                  <SeatsIcon size={14} color={colors.textSecondary} />
+                                  <Text size="xs" variant="secondary" weight="medium">
+                                    {String(service.seat_name)}
+                                  </Text>
+                                </View>
+                              )}
+                              {service.staff_name && (
+                                <View style={[tw`px-2 py-1 rounded-lg flex-row items-center gap-1.5`, { backgroundColor: cardBg }]}>
+                                  <StaffIcon size={14} color={colors.textSecondary} />
+                                  <Text size="xs" variant="secondary" weight="medium">
+                                    {String(service.staff_name)}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          )}
                         </View>
                       );
                     });
@@ -757,21 +792,25 @@ export default function AppointmentDetailScreen() {
           )}
 
           <View style={[
-            tw`rounded-3xl p-5`,
+            tw`rounded-2xl p-4`,
             { 
               backgroundColor: cardBg, 
               borderWidth: 1, 
               borderColor,
-              shadowColor: isDark ? '#000000' : '#000000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 3,
             }
           ]}>
-            <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-              Pricing Summary
-            </Text>
+            <View style={tw`flex-row items-center mb-3`}>
+              <View style={[
+                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+              ]}>
+                <RevenueIcon size={20} color={SalozyColors.status.success} />
+              </View>
+              <View style={tw`flex-1`}>
+                <Text size="base" weight="bold" variant="primary">Pricing Summary</Text>
+                <Text size="xs" variant="secondary">Total amount and discounts</Text>
+              </View>
+            </View>
             <View style={tw`gap-4`}>
               {(() => {
                 const totalPrice = appointment.app_price || appointment.original_total || 0;
@@ -782,35 +821,35 @@ export default function AppointmentDetailScreen() {
                   return (
                     <View>
                       <View style={[
-                        tw`flex-row justify-between items-center p-4 rounded-2xl mb-3`,
+                        tw`flex-row justify-between items-center p-3 rounded-xl mb-2`,
                         { backgroundColor: colors.secondaryBg }
                       ]}>
-                        <Text style={[tw`text-base`, { color: textSecondary }]}>Subtotal:</Text>
-                        <Text style={[tw`text-base font-semibold`, { color: textPrimary }]}>
+                        <Text size="sm" variant="secondary">Subtotal</Text>
+                        <Text size="sm" weight="semibold" variant="primary">
                           {String(appointment.currency_symbol || '₹')}{String(typeof totalPrice === 'number' ? totalPrice.toFixed(2) : '0.00')}
                         </Text>
                       </View>
                       {couponDiscount > 0 && (
                         <View style={[
-                          tw`flex-row justify-between items-center p-4 rounded-2xl mb-3`,
+                          tw`flex-row justify-between items-center p-3 rounded-xl mb-2`,
                           { backgroundColor: colors.secondaryBg }
                         ]}>
-                          <Text style={[tw`text-base`, { color: textSecondary }]}>Coupon Discount:</Text>
-                          <Text style={[tw`text-base font-semibold`, { color: SalozyColors.status.success }]}>
+                          <Text size="sm" variant="secondary">Coupon Discount</Text>
+                          <Text size="sm" weight="semibold" style={{ color: SalozyColors.status.success }}>
                             -{String(appointment.currency_symbol || '₹')}{String(typeof couponDiscount === 'number' ? couponDiscount.toFixed(2) : '0.00')}
                           </Text>
                         </View>
                       )}
                       <View style={[
-                        tw`flex-row justify-between items-center p-5 rounded-2xl`,
+                        tw`flex-row justify-between items-center p-4 rounded-xl mt-2`,
                         { 
                           backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.1)',
-                          borderWidth: 2,
+                          borderWidth: 1,
                           borderColor: SalozyColors.status.success,
                         }
                       ]}>
-                        <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Final Amount:</Text>
-                        <Text style={[tw`text-2xl font-bold`, { color: SalozyColors.status.success }]}>
+                        <Text size="lg" weight="bold" variant="primary">Final Amount</Text>
+                        <Text size="xl" weight="bold" style={{ color: SalozyColors.status.success }}>
                           {String(appointment.currency_symbol || '₹')}{String(typeof finalAmount === 'number' ? finalAmount.toFixed(2) : '0.00')}
                         </Text>
                       </View>
@@ -820,15 +859,15 @@ export default function AppointmentDetailScreen() {
                 
                 return (
                   <View style={[
-                    tw`flex-row justify-between items-center p-5 rounded-2xl`,
+                    tw`flex-row justify-between items-center p-4 rounded-xl`,
                     { 
                       backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.1)',
-                      borderWidth: 2,
+                      borderWidth: 1,
                       borderColor: SalozyColors.status.success,
                     }
                   ]}>
-                    <Text style={[tw`text-xl font-bold`, { color: textPrimary }]}>Total Amount:</Text>
-                    <Text style={[tw`text-2xl font-bold`, { color: SalozyColors.status.success }]}>
+                    <Text size="lg" weight="bold" variant="primary">Total Amount</Text>
+                    <Text size="xl" weight="bold" style={{ color: SalozyColors.status.success }}>
                       {String(appointment.currency_symbol || '₹')}{String(typeof finalAmount === 'number' ? finalAmount.toFixed(2) : '0.00')}
                     </Text>
                   </View>
@@ -839,22 +878,31 @@ export default function AppointmentDetailScreen() {
 
           {appointment.notes && (
             <View style={[
-              tw`rounded-3xl p-5`,
+              tw`rounded-2xl p-4`,
               { 
                 backgroundColor: cardBg, 
                 borderWidth: 1, 
                 borderColor,
-                shadowColor: isDark ? '#000000' : '#000000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 3,
               }
             ]}>
-              <Text style={[tw`text-lg font-bold mb-3`, { color: textPrimary }]}>
-                Notes
-              </Text>
-              <Text style={[tw`text-base leading-6`, { color: textPrimary }]}>{appointment.notes}</Text>
+              <View style={tw`flex-row items-center mb-3`}>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: isDark ? 'rgba(107, 114, 128, 0.2)' : 'rgba(107, 114, 128, 0.1)' }
+                ]}>
+                  <NotesIcon size={20} color={colors.textSecondary} />
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" variant="primary">Notes</Text>
+                  <Text size="xs" variant="secondary">Additional information</Text>
+                </View>
+              </View>
+              <View style={[
+                tw`p-3 rounded-xl`,
+                { backgroundColor: colors.secondaryBg }
+              ]}>
+                <Text size="sm" variant="primary" style={tw`leading-5`}>{appointment.notes}</Text>
+              </View>
             </View>
           )}
         </View>

@@ -33,7 +33,10 @@ export const API_ENDPOINTS = {
   APPOINTMENT_UPDATE: (id: string | number) => `/appointments/${id}`,
   APPOINTMENT_DELETE: (id: string | number) => `/appointments/${id}`,
   APPOINTMENT_UPDATE_STATUS: (id: string | number) => `/appointments/${id}/update-status`,
+  APPOINTMENT_UPDATE_SEAT_STATUS: (id: string | number) => `/appointments/${id}/update-seat-status`,
   APPOINTMENT_FORM_DATA: '/appointments/form-data',
+  APPOINTMENT_SEAT_MAP: '/appointments/seat-map',
+  APPOINTMENT_SEAT_CHECK_AVAILABILITY: (seatId: string | number) => `/appointments/seats/${seatId}/check-availability`,
   
   // Services
   SERVICES: '/services',

@@ -41,10 +41,36 @@ export const API_ENDPOINTS = {
   // Services
   SERVICES: '/services',
   SERVICE_BY_ID: (id: string | number) => `/services/${id}`,
+  SERVICE_CREATE: '/services',
+  SERVICE_UPDATE: (id: string | number) => `/services/${id}`,
+  SERVICE_DELETE: (id: string | number) => `/services/${id}`,
   
   // Customers
   CUSTOMERS: '/customers',
   CUSTOMER_BY_ID: (id: string | number) => `/customers/${id}`,
+  CUSTOMER_CREATE: '/customers',
+  CUSTOMER_BOOKING_HISTORY: (id: string | number) => `/customers/${id}/booking-history`,
+  
+  // Staff
+  STAFF: '/staff',
+  STAFF_BY_ID: (id: string | number) => `/staff/${id}`,
+  STAFF_CREATE: '/staff',
+  STAFF_UPDATE: (id: string | number) => `/staff/${id}`,
+  STAFF_DELETE: (id: string | number) => `/staff/${id}`,
+  
+  // Purchased Plans
+  PURCHASED_PLANS: '/purchased-plans',
+  PURCHASED_PLAN_UPDATE_STATUS: (id: string | number) => `/purchased-plans/${id}/update-status`,
+  PURCHASED_PLAN_REFUND: (id: string | number) => `/purchased-plans/${id}/refund`,
+  
+  // Branches
+  BRANCHES: '/branches',
+  BRANCH_BY_ID: (id: string | number) => `/branches/${id}`,
+  BRANCH_CREATE: '/branches',
+  BRANCH_UPDATE: (id: string | number) => `/branches/${id}`,
+  BRANCH_DELETE: (id: string | number) => `/branches/${id}`,
+  BRANCH_WORKING_HOURS: (id: string | number) => `/branches/${id}/working-hours`,
+  BRANCH_SAVE_WORKING_HOURS: (id: string | number) => `/branches/${id}/working-hours`,
   
   // Working Hours
   WORKING_HOURS: '/working-hours',

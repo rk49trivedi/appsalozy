@@ -166,6 +166,67 @@ class ApiClient {
     );
   }
 
+  async postFormData<T = any>(
+    endpoint: string,
+    formData: FormData,
+    includeAuth = true
+  ): Promise<ApiResponse<T>> {
+    const url = getApiUrl(endpoint);
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+    };
+
+    if (includeAuth) {
+      const token = await this.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const error: ApiError = {
+          message: data.message || 'An error occurred',
+          errors: data.errors,
+          status: response.status,
+        };
+        throw error;
+      }
+
+      return data;
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        throw {
+          message: 'Request timeout. Please check your connection.',
+          status: 408,
+        } as ApiError;
+      }
+
+      if (error.status) {
+        throw error;
+      }
+
+      throw {
+        message: error.message || 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
+  }
+
   async putFormData<T = any>(
     endpoint: string,
     formData: FormData,

@@ -8,10 +8,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { Logo } from '../atoms/Logo';
+import { CustomersIcon } from '../atoms/icons/dashboard-icons';
 import {
-    AppointmentsIcon,
-    DashboardIcon,
-    LogoutIcon
+  AppointmentsIcon,
+  BranchIcon,
+  DashboardIcon,
+  LogoutIcon,
+  PurchasedPlansIcon,
+  ServicesIcon,
+  StaffIcon
 } from '../atoms/icons/sidebar-icons';
 
 interface SidebarProps {
@@ -79,14 +84,12 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon, iconName: 'dashboard', route: '/(tabs)', active: pathname === '/(tabs)' || pathname === '/' },
-    { id: 'appointments', label: 'Appointments', Icon: AppointmentsIcon, iconName: 'event', route: '/appointments', active: pathname === '/appointments' },
-    // Temporarily hidden menu items
-    // { id: 'customers', label: 'Clients', Icon: CustomersIcon, iconName: 'people', route: null, active: false },
-    // { id: 'services', label: 'Services', Icon: null, iconName: 'content-cut', route: null, active: false },
-    // { id: 'staff', label: 'Staff Management', Icon: null, iconName: 'work', route: null, active: false },
-    // { id: 'finances', label: 'Finances', Icon: null, iconName: 'attach-money', route: null, active: false },
-    // { id: 'settings', label: 'Settings', Icon: null, iconName: 'settings', route: null, active: false },
-    // { id: 'support', label: 'Support', Icon: null, iconName: 'help-outline', route: null, active: false },
+    { id: 'appointments', label: 'Appointments', Icon: AppointmentsIcon, iconName: 'event', route: '/(tabs)/appointments', active: pathname?.startsWith('/(tabs)/appointments') || pathname?.startsWith('/appointments') },
+    { id: 'customers', label: 'Customers', Icon: CustomersIcon, iconName: 'people', route: '/(tabs)/customers', active: pathname?.startsWith('/(tabs)/customers') || pathname?.startsWith('/customers') },
+    { id: 'services', label: 'Services', Icon: ServicesIcon, iconName: 'content-cut', route: '/(tabs)/services', active: pathname?.startsWith('/(tabs)/services') || pathname?.startsWith('/services') },
+    { id: 'staff', label: 'Staff', Icon: StaffIcon, iconName: 'work', route: '/(tabs)/staff', active: pathname?.startsWith('/(tabs)/staff') || pathname?.startsWith('/staff') },
+    { id: 'purchased-plans', label: 'Purchased Plans', Icon: PurchasedPlansIcon, iconName: 'card-membership', route: '/(tabs)/purchased-plans', active: pathname?.startsWith('/(tabs)/purchased-plans') || pathname?.startsWith('/purchased-plans') },
+    { id: 'branches', label: 'Branches', Icon: BranchIcon, iconName: 'business', route: '/(tabs)/branches', active: pathname?.startsWith('/(tabs)/branches') || pathname?.startsWith('/branches') },
   ];
 
   const handleMenuItemPress = (item: { route: string | null }) => {

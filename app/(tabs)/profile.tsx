@@ -1,4 +1,4 @@
-import { Input, Text } from '@/components/atoms';
+import { AppointmentsIcon, CustomersIcon, EmailIcon, EyeIcon, EyeOffIcon, Input, NotesIcon, PasswordIcon, Text } from '@/components/atoms';
 import { DatePicker } from '@/components/molecules';
 import { GlobalHeader } from '@/components/organisms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
@@ -391,12 +391,21 @@ export default function ProfileScreen() {
               {/* Logo Upload (Vendor Only) */}
               {isVendor && (
                 <View style={[
-                  tw`rounded-2xl p-5`,
+                  tw`rounded-2xl p-4`,
                   { backgroundColor: cardBg, borderWidth: 1, borderColor }
                 ]}>
-                  <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-                    Logo
-                  </Text>
+                  <View style={tw`flex-row items-center mb-3`}>
+                    <View style={[
+                      tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                      { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' }
+                    ]}>
+                      <AppointmentsIcon size={20} color={SalozyColors.primary.DEFAULT} />
+                    </View>
+                    <View style={tw`flex-1`}>
+                      <Text size="base" weight="bold" variant="primary">Logo</Text>
+                      <Text size="xs" variant="secondary">Upload your business logo</Text>
+                    </View>
+                  </View>
                   <View style={tw`items-center`}>
                     <View style={tw`relative`}>
                       {displayLogoImage ? (
@@ -444,12 +453,21 @@ export default function ProfileScreen() {
 
               {/* Profile Image */}
               <View style={[
-                tw`rounded-2xl p-5`,
+                tw`rounded-2xl p-4`,
                 { backgroundColor: cardBg, borderWidth: 1, borderColor }
               ]}>
-                <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-                  Profile Image
-                </Text>
+                <View style={tw`flex-row items-center mb-3`}>
+                  <View style={[
+                    tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                    { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)' }
+                  ]}>
+                    <CustomersIcon size={20} color={SalozyColors.status.info} />
+                  </View>
+                  <View style={tw`flex-1`}>
+                    <Text size="base" weight="bold" variant="primary">Profile Image</Text>
+                    <Text size="xs" variant="secondary">Upload your profile picture</Text>
+                  </View>
+                </View>
                 <View style={tw`items-center`}>
                   <View style={tw`relative`}>
                     {displayProfileImage ? (
@@ -493,18 +511,28 @@ export default function ProfileScreen() {
 
               {/* Personal Information */}
               <View style={[
-                tw`rounded-2xl p-5`,
+                tw`rounded-2xl p-4`,
                 { backgroundColor: cardBg, borderWidth: 1, borderColor }
               ]}>
-                <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-                  General Information
-                </Text>
-                <View style={tw`gap-4`}>
+                <View style={tw`flex-row items-center mb-3`}>
+                  <View style={[
+                    tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                    { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)' }
+                  ]}>
+                    <CustomersIcon size={20} color={SalozyColors.status.success} />
+                  </View>
+                  <View style={tw`flex-1`}>
+                    <Text size="base" weight="bold" variant="primary">General Information</Text>
+                    <Text size="xs" variant="secondary">Personal details and contact info</Text>
+                  </View>
+                </View>
+                <View style={tw`gap-3`}>
                   <Input
                     label="Full Name"
                     value={name}
                     onChangeText={setName}
                     placeholder="Enter your full name"
+                    leftIcon={<CustomersIcon size={20} color={colors.placeholder} />}
                     required
                   />
                   <Input
@@ -514,6 +542,7 @@ export default function ProfileScreen() {
                     placeholder="Enter your email"
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    leftIcon={<EmailIcon size={20} color={colors.placeholder} />}
                     required
                   />
                   <Input
@@ -522,6 +551,7 @@ export default function ProfileScreen() {
                     onChangeText={setPhone}
                     placeholder="Enter your phone number"
                     keyboardType="phone-pad"
+                    leftIcon={<AppointmentsIcon size={20} color={colors.placeholder} />}
                   />
                   <View>
                     <Text style={[tw`mb-2`, { color: textPrimary }]}>Gender</Text>
@@ -555,6 +585,7 @@ export default function ProfileScreen() {
                     placeholder="Enter your address"
                     multiline
                     numberOfLines={3}
+                    leftIcon={<NotesIcon size={20} color={colors.placeholder} />}
                   />
                   
                   {/* Customer-specific fields */}
@@ -583,9 +614,9 @@ export default function ProfileScreen() {
                 onPress={handleSubmit}
                 disabled={submitting}
                 style={[
-                  tw`px-6 py-4 rounded-xl mt-2`,
+                  tw`px-6 py-4 rounded-2xl mt-2`,
                   {
-                    backgroundColor: submitting ? SalozyColors.primary.DEFAULT : SalozyColors.primary.DEFAULT,
+                    backgroundColor: submitting ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
                     opacity: submitting ? 0.6 : 1
                   }
                 ]}
@@ -594,12 +625,12 @@ export default function ProfileScreen() {
                 {submitting ? (
                   <View style={tw`flex-row items-center justify-center`}>
                     <ActivityIndicator size="small" color="#FFFFFF" style={tw`mr-2`} />
-                    <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                    <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
                       Processing...
                     </Text>
                   </View>
                 ) : (
-                  <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                  <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
                     Save Changes
                   </Text>
                 )}
@@ -608,62 +639,80 @@ export default function ProfileScreen() {
           ) : (
             /* Password Change Section */
             <View style={[
-              tw`rounded-2xl p-5`,
+              tw`rounded-2xl p-4`,
               { backgroundColor: cardBg, borderWidth: 1, borderColor }
             ]}>
-              <Text style={[tw`text-lg font-bold mb-4`, { color: textPrimary }]}>
-                Change Password
-              </Text>
-              <View style={tw`gap-4`}>
-                <View>
-                  <Input
-                    label="Current Password"
-                    value={currentPassword}
-                    onChangeText={setCurrentPassword}
-                    placeholder="Enter current password"
-                    secureTextEntry={!showCurrentPassword}
-                    rightIcon={
-                      <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
-                        <Text>{showCurrentPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                      </TouchableOpacity>
-                    }
-                  />
+              <View style={tw`flex-row items-center mb-3`}>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)' }
+                ]}>
+                  <PasswordIcon size={20} color="#8B5CF6" />
                 </View>
-                <View>
-                  <Input
-                    label="New Password"
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    placeholder="Enter new password"
-                    secureTextEntry={!showNewPassword}
-                    rightIcon={
-                      <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
-                        <Text>{showNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                      </TouchableOpacity>
-                    }
-                  />
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" variant="primary">Change Password</Text>
+                  <Text size="xs" variant="secondary">Update your account password</Text>
                 </View>
-                <View>
-                  <Input
-                    label="Confirm New Password"
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    placeholder="Confirm new password"
-                    secureTextEntry={!showConfirmPassword}
-                    rightIcon={
-                      <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        <Text>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
-                      </TouchableOpacity>
-                    }
-                  />
-                </View>
+              </View>
+              <View style={tw`gap-3`}>
+                <Input
+                  label="Current Password"
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                  placeholder="Enter current password"
+                  secureTextEntry={!showCurrentPassword}
+                  leftIcon={<PasswordIcon size={20} color={colors.placeholder} />}
+                  rightIcon={
+                    <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                      {showCurrentPassword ? (
+                        <EyeOffIcon size={20} color={colors.textSecondary} />
+                      ) : (
+                        <EyeIcon size={20} color={colors.textSecondary} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+                <Input
+                  label="New Password"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  placeholder="Enter new password"
+                  secureTextEntry={!showNewPassword}
+                  leftIcon={<PasswordIcon size={20} color={colors.placeholder} />}
+                  rightIcon={
+                    <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                      {showNewPassword ? (
+                        <EyeOffIcon size={20} color={colors.textSecondary} />
+                      ) : (
+                        <EyeIcon size={20} color={colors.textSecondary} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+                <Input
+                  label="Confirm New Password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Confirm new password"
+                  secureTextEntry={!showConfirmPassword}
+                  leftIcon={<PasswordIcon size={20} color={colors.placeholder} />}
+                  rightIcon={
+                    <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      {showConfirmPassword ? (
+                        <EyeOffIcon size={20} color={colors.textSecondary} />
+                      ) : (
+                        <EyeIcon size={20} color={colors.textSecondary} />
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
                 <TouchableOpacity
                   onPress={handlePasswordUpdate}
                   disabled={updatingPassword}
                   style={[
-                    tw`px-6 py-4 rounded-xl mt-2`,
+                    tw`px-6 py-4 rounded-2xl mt-2`,
                     {
-                      backgroundColor: updatingPassword ? SalozyColors.primary.DEFAULT : SalozyColors.primary.DEFAULT,
+                      backgroundColor: updatingPassword ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
                       opacity: updatingPassword ? 0.6 : 1
                     }
                   ]}
@@ -672,12 +721,12 @@ export default function ProfileScreen() {
                   {updatingPassword ? (
                     <View style={tw`flex-row items-center justify-center`}>
                       <ActivityIndicator size="small" color="#FFFFFF" style={tw`mr-2`} />
-                      <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                      <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
                         Processing...
                       </Text>
                     </View>
                   ) : (
-                    <Text size="lg" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                    <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
                       Update Password
                     </Text>
                   )}

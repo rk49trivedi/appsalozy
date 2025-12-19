@@ -323,7 +323,7 @@ export default function PurchasedPlansScreen() {
       formData.append('refund_date', data.refund_date);
       formData.append('reason', data.reason || '');
       formData.append('notes', data.notes || '');
-      formData.append('currency', selectedRefundPlan.currency_text || 'INR');
+      // Note: currency is handled by API from planUsage->currency_text
       if (data.receipt) {
         formData.append('receipt', {
           uri: data.receipt.uri,

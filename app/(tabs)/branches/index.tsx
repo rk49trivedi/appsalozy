@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     RefreshControl,
     ScrollView,
     TouchableOpacity,
@@ -68,7 +69,8 @@ export default function BranchesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+  const [filterAnimation] = useState(new Animated.Value(1));
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -185,6 +187,19 @@ export default function BranchesScreen() {
 
   const activeFilterCount = [searchQuery, statusFilter].filter(Boolean).length;
 
+  const getStatusColor = (isActive: boolean) => {
+    if (isActive) {
+      return { 
+        bg: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)', 
+        text: SalozyColors.status.success 
+      };
+    }
+    return { 
+      bg: isDark ? 'rgba(107, 114, 128, 0.2)' : 'rgba(107, 114, 128, 0.1)', 
+      text: colors.textSecondary 
+    };
+  };
+
   return (
     <SafeAreaView style={[tw`flex-1`, { backgroundColor: bgColor }]} edges={['top']}>
       <GlobalHeader
@@ -237,23 +252,51 @@ export default function BranchesScreen() {
                   <SearchIcon size={20} color={SalozyColors.primary.DEFAULT} />
                 </View>
                 <View style={tw`flex-1`}>
-                  <Text size="base" weight="bold" variant="primary">Filters</Text>
-                  <Text size="xs" variant="secondary">
-                    {activeFilterCount > 0 ? `${activeFilterCount} active` : 'No filters applied'}
+                  <Text size="base" weight="bold" variant="primary">
+                    Filters
                   </Text>
+                  {(searchQuery || statusFilter) && (
+                    <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
+                      {activeFilterCount} active
+                    </Text>
+                  )}
                 </View>
+                {(searchQuery || statusFilter) && (
+                  <View style={[
+                    tw`px-2.5 py-1 rounded-full mr-2`,
+                    { backgroundColor: SalozyColors.primary.DEFAULT }
+                  ]}>
+                    <Text size="xs" weight="bold" style={{ color: '#FFFFFF' }}>
+                      {activeFilterCount}
+                    </Text>
+                  </View>
+                )}
               </View>
-              <Text size="base" variant="secondary">
-                {showFilters ? '▼' : '▶'}
-              </Text>
+              <View style={[
+                tw`w-8 h-8 rounded-full items-center justify-center`,
+                { backgroundColor: colors.secondaryBg }
+              ]}>
+                <Text size="base" variant="secondary">
+                  {showFilters ? '▼' : '▶'}
+                </Text>
+              </View>
             </TouchableOpacity>
 
             {showFilters && (
-              <View style={tw`gap-3`}>
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Search
-                  </Text>
+              <Animated.View
+                style={[
+                  { opacity: filterAnimation },
+                  tw`mt-4 pt-4 border-t`,
+                  { borderColor: colors.border }
+                ]}
+              >
+                {/* Search Input */}
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-2`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Search
+                    </Text>
+                  </View>
                   <Input
                     placeholder="Search by name, address, or phone..."
                     value={searchQuery}
@@ -265,16 +308,20 @@ export default function BranchesScreen() {
                   />
                 </View>
 
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Status
-                  </Text>
+                {/* Status Filter */}
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-3`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Status
+                    </Text>
+                  </View>
                   <View style={tw`flex-row flex-wrap gap-2`}>
                     {[
                       { value: '', label: 'All' },
                       { value: 'active', label: 'Active' },
                       { value: 'inactive', label: 'Inactive' },
                     ].map((statusOption) => {
+                      const statusConfig = statusOption.value !== '' ? getStatusColor(statusOption.value === 'active') : null;
                       const isSelected = statusFilter === statusOption.value;
                       return (
                         <TouchableOpacity
@@ -287,8 +334,7 @@ export default function BranchesScreen() {
                             tw`px-3 py-2.5 rounded-xl`,
                             {
                               backgroundColor: isSelected 
-                                ? (statusOption.value === '' ? SalozyColors.primary.DEFAULT : 
-                                   statusOption.value === 'active' ? SalozyColors.status.success : colors.secondaryBg)
+                                ? (statusOption.value === '' ? SalozyColors.primary.DEFAULT : statusConfig?.bg || colors.secondaryBg)
                                 : colors.secondaryBg,
                               borderWidth: isSelected ? 0 : 1,
                               borderColor: colors.border,
@@ -301,8 +347,7 @@ export default function BranchesScreen() {
                             weight="semibold"
                             style={{ 
                               color: isSelected 
-                                ? (statusOption.value === '' ? '#FFFFFF' : 
-                                   statusOption.value === 'active' ? SalozyColors.status.success : colors.textPrimary)
+                                ? (statusOption.value === '' ? '#FFFFFF' : statusConfig?.text || colors.textPrimary)
                                 : colors.textPrimary 
                             }}
                           >
@@ -314,6 +359,7 @@ export default function BranchesScreen() {
                   </View>
                 </View>
 
+                {/* Clear Filters Button */}
                 {(searchQuery || statusFilter) && (
                   <TouchableOpacity
                     onPress={() => {
@@ -332,7 +378,7 @@ export default function BranchesScreen() {
                     </Text>
                   </TouchableOpacity>
                 )}
-              </View>
+              </Animated.View>
             )}
           </View>
 

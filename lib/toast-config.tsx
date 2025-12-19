@@ -87,9 +87,10 @@ const CustomScrollableToast = ({
         borderRadius: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 6,
-        elevation: 8,
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 20,
+        zIndex: 9999,
         width: '92%',
         overflow: 'hidden',
       }}

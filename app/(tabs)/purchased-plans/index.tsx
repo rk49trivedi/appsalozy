@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
@@ -126,7 +127,8 @@ export default function PurchasedPlansScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+  const [filterAnimation] = useState(new Animated.Value(1));
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
@@ -493,23 +495,51 @@ export default function PurchasedPlansScreen() {
                   <SearchIcon size={20} color={SalozyColors.primary.DEFAULT} />
                 </View>
                 <View style={tw`flex-1`}>
-                  <Text size="base" weight="bold" variant="primary">Filters</Text>
-                  <Text size="xs" variant="secondary">
-                    {activeFilterCount > 0 ? `${activeFilterCount} active` : 'No filters applied'}
+                  <Text size="base" weight="bold" variant="primary">
+                    Filters
                   </Text>
+                  {(searchQuery || statusFilter) && (
+                    <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
+                      {activeFilterCount} active
+                    </Text>
+                  )}
                 </View>
+                {(searchQuery || statusFilter) && (
+                  <View style={[
+                    tw`px-2.5 py-1 rounded-full mr-2`,
+                    { backgroundColor: SalozyColors.primary.DEFAULT }
+                  ]}>
+                    <Text size="xs" weight="bold" style={{ color: '#FFFFFF' }}>
+                      {activeFilterCount}
+                    </Text>
+                  </View>
+                )}
               </View>
-              <Text size="base" variant="secondary">
-                {showFilters ? '▼' : '▶'}
-              </Text>
+              <View style={[
+                tw`w-8 h-8 rounded-full items-center justify-center`,
+                { backgroundColor: colors.secondaryBg }
+              ]}>
+                <Text size="base" variant="secondary">
+                  {showFilters ? '▼' : '▶'}
+                </Text>
+              </View>
             </TouchableOpacity>
 
             {showFilters && (
-              <View style={tw`gap-3`}>
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Search
-                  </Text>
+              <Animated.View
+                style={[
+                  { opacity: filterAnimation },
+                  tw`mt-4 pt-4 border-t`,
+                  { borderColor: colors.border }
+                ]}
+              >
+                {/* Search Input */}
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-2`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Search
+                    </Text>
+                  </View>
                   <Input
                     placeholder="Search by customer name, email, or phone..."
                     value={searchQuery}
@@ -521,10 +551,13 @@ export default function PurchasedPlansScreen() {
                   />
                 </View>
 
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Status
-                  </Text>
+                {/* Status Filter */}
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-3`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Status
+                    </Text>
+                  </View>
                   <View style={tw`flex-row flex-wrap gap-2`}>
                     {[
                       { value: '', label: 'All' },
@@ -535,6 +568,7 @@ export default function PurchasedPlansScreen() {
                       { value: 'expired', label: 'Expired' },
                       { value: 'refunded', label: 'Refunded' },
                     ].map((statusOption) => {
+                      const statusConfig = statusOption.value !== '' ? getStatusColor(statusOption.value) : null;
                       const isSelected = statusFilter === statusOption.value;
                       return (
                         <TouchableOpacity
@@ -547,7 +581,7 @@ export default function PurchasedPlansScreen() {
                             tw`px-3 py-2.5 rounded-xl`,
                             {
                               backgroundColor: isSelected 
-                                ? (statusOption.value === '' ? SalozyColors.primary.DEFAULT : colors.secondaryBg)
+                                ? (statusOption.value === '' ? SalozyColors.primary.DEFAULT : statusConfig?.bg || colors.secondaryBg)
                                 : colors.secondaryBg,
                               borderWidth: isSelected ? 0 : 1,
                               borderColor: colors.border,
@@ -560,7 +594,7 @@ export default function PurchasedPlansScreen() {
                             weight="semibold"
                             style={{ 
                               color: isSelected 
-                                ? (statusOption.value === '' ? '#FFFFFF' : colors.textPrimary)
+                                ? (statusOption.value === '' ? '#FFFFFF' : statusConfig?.text || colors.textPrimary)
                                 : colors.textPrimary 
                             }}
                           >
@@ -572,6 +606,7 @@ export default function PurchasedPlansScreen() {
                   </View>
                 </View>
 
+                {/* Clear Filters Button */}
                 {(searchQuery || statusFilter) && (
                   <TouchableOpacity
                     onPress={() => {
@@ -590,7 +625,7 @@ export default function PurchasedPlansScreen() {
                     </Text>
                   </TouchableOpacity>
                 )}
-              </View>
+              </Animated.View>
             )}
           </View>
 
@@ -708,7 +743,7 @@ export default function PurchasedPlansScreen() {
                         <Text size="xs" weight="bold" variant="primary" style={tw`mb-2`}>Payment Details</Text>
                         <View style={tw`gap-1`}>
                           <Text size="xs" variant="secondary">
-                            Method: {plan.transaction_detail.payment_method?.charAt(0).toUpperCase() + plan.transaction_detail.payment_method?.slice(1)}
+                            Method: {plan.transaction_detail?.payment_method ? (plan.transaction_detail.payment_method.charAt(0).toUpperCase() + plan.transaction_detail.payment_method.slice(1)) : 'N/A'}
                           </Text>
                           {plan.transaction_detail.payment_reference && (
                             <Text size="xs" variant="secondary">
@@ -960,7 +995,7 @@ export default function PurchasedPlansScreen() {
       {/* Refund Details Modal */}
       <PlanRefundDetailModal
         visible={showRefundDetailModal}
-        refundDetail={selectedRefundDetail}
+        refundDetail={selectedRefundDetail || null}
         onClose={() => {
           setShowRefundDetailModal(false);
           setSelectedRefundDetail(null);

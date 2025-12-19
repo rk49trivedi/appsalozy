@@ -6,7 +6,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    KeyboardAvoidingView,
     Modal,
+    Platform,
     ScrollView,
     TextInput,
     TouchableOpacity,
@@ -111,24 +113,34 @@ export function PlanRefundModal({
       onRequestClose={handleClose}
     >
       <SafeAreaView style={[tw`flex-1`, { backgroundColor: cardBg }]} edges={['top', 'bottom']}>
-        <View style={tw`flex-1`}>
-          {/* Header */}
-          <View style={[tw`px-4 py-4 border-b flex-row items-center justify-between`, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
-            <Text size="lg" weight="bold" variant="primary">Refund Plan</Text>
-            <TouchableOpacity
-              onPress={handleClose}
-              disabled={processing}
-              style={[
-                tw`w-10 h-10 rounded-full items-center justify-center`,
-                { backgroundColor: colors.secondaryBg }
-              ]}
-            >
-              <Text size="xl" variant="secondary">×</Text>
-            </TouchableOpacity>
-          </View>
+        <KeyboardAvoidingView
+          style={tw`flex-1`}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <View style={tw`flex-1`}>
+            {/* Header */}
+            <View style={[tw`px-4 py-4 border-b flex-row items-center justify-between`, { borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
+              <Text size="lg" weight="bold" variant="primary">Refund Plan</Text>
+              <TouchableOpacity
+                onPress={handleClose}
+                disabled={processing}
+                style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center`,
+                  { backgroundColor: colors.secondaryBg }
+                ]}
+              >
+                <Text size="xl" variant="secondary">×</Text>
+              </TouchableOpacity>
+            </View>
 
-          {/* Content */}
-          <ScrollView style={tw`flex-1`} contentContainerStyle={tw`p-4 gap-4`}>
+            {/* Content */}
+            <ScrollView 
+              style={tw`flex-1`} 
+              contentContainerStyle={tw`p-4 gap-4 pb-8`}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
+            >
             {plan && (
               <View style={[tw`p-4 rounded-lg mb-4`, { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.1)', borderWidth: 1, borderColor: SalozyColors.status.warning }]}>
                 <Text size="sm" weight="bold" style={[{ color: SalozyColors.status.warning }, tw`mb-2`]}>⚠️ Refund Information</Text>
@@ -311,6 +323,7 @@ export function PlanRefundModal({
             </TouchableOpacity>
           </ScrollView>
         </View>
+      </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );

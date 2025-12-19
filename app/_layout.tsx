@@ -273,7 +273,7 @@ export default function RootLayout() {
               <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
             </Stack>
             <StatusBar style="auto" />
-            <Toast config={toastConfig} />
+            <Toast config={toastConfig} topOffset={100} />
           </>
         )}
       </GlobalSidebarProvider>

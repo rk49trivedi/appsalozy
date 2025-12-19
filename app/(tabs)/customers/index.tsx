@@ -11,6 +11,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Animated,
     RefreshControl,
     ScrollView,
     TouchableOpacity,
@@ -66,7 +67,8 @@ export default function CustomersScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+  const [filterAnimation] = useState(new Animated.Value(1));
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -238,24 +240,51 @@ export default function CustomersScreen() {
                   <SearchIcon size={20} color={SalozyColors.primary.DEFAULT} />
                 </View>
                 <View style={tw`flex-1`}>
-                  <Text size="base" weight="bold" variant="primary">Filters</Text>
-                  <Text size="xs" variant="secondary">
-                    {activeFilterCount > 0 ? `${activeFilterCount} active` : 'No filters applied'}
+                  <Text size="base" weight="bold" variant="primary">
+                    Filters
                   </Text>
+                  {(searchQuery || statusFilter || genderFilter) && (
+                    <Text size="xs" variant="secondary" style={tw`mt-0.5`}>
+                      {activeFilterCount} active
+                    </Text>
+                  )}
                 </View>
+                {(searchQuery || statusFilter || genderFilter) && (
+                  <View style={[
+                    tw`px-2.5 py-1 rounded-full mr-2`,
+                    { backgroundColor: SalozyColors.primary.DEFAULT }
+                  ]}>
+                    <Text size="xs" weight="bold" style={{ color: '#FFFFFF' }}>
+                      {activeFilterCount}
+                    </Text>
+                  </View>
+                )}
               </View>
-              <Text size="base" variant="secondary">
-                {showFilters ? '?' : '?'}
-              </Text>
+              <View style={[
+                tw`w-8 h-8 rounded-full items-center justify-center`,
+                { backgroundColor: colors.secondaryBg }
+              ]}>
+                <Text size="base" variant="secondary">
+                  {showFilters ? '▼' : '▶'}
+                </Text>
+              </View>
             </TouchableOpacity>
 
             {showFilters && (
-              <View style={tw`gap-3`}>
+              <Animated.View
+                style={[
+                  { opacity: filterAnimation },
+                  tw`mt-4 pt-4 border-t`,
+                  { borderColor: colors.border }
+                ]}
+              >
                 {/* Search Input */}
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Search
-                  </Text>
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-2`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Search
+                    </Text>
+                  </View>
                   <Input
                     placeholder="Search by name, email, or phone..."
                     value={searchQuery}
@@ -268,16 +297,19 @@ export default function CustomersScreen() {
                 </View>
 
                 {/* Status Filter */}
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Status
-                  </Text>
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-3`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Status
+                    </Text>
+                  </View>
                   <View style={tw`flex-row flex-wrap gap-2`}>
                     {[
                       { value: '', label: 'All' },
                       { value: 'active', label: 'Active' },
                       { value: 'inactive', label: 'Inactive' },
                     ].map((statusOption) => {
+                      const statusConfig = statusOption.value !== '' ? getStatusColor(statusOption.value === 'active') : null;
                       const isSelected = statusFilter === statusOption.value;
                       return (
                         <TouchableOpacity
@@ -290,8 +322,7 @@ export default function CustomersScreen() {
                             tw`px-3 py-2.5 rounded-xl`,
                             {
                               backgroundColor: isSelected 
-                                ? (statusOption.value === '' ? SalozyColors.primary.DEFAULT : 
-                                   statusOption.value === 'active' ? SalozyColors.status.success : colors.secondaryBg)
+                                ? (statusOption.value === '' ? SalozyColors.primary.DEFAULT : statusConfig?.bg || colors.secondaryBg)
                                 : colors.secondaryBg,
                               borderWidth: isSelected ? 0 : 1,
                               borderColor: colors.border,
@@ -304,8 +335,7 @@ export default function CustomersScreen() {
                             weight="semibold"
                             style={{ 
                               color: isSelected 
-                                ? (statusOption.value === '' ? '#FFFFFF' : 
-                                   statusOption.value === 'active' ? SalozyColors.status.success : colors.textPrimary)
+                                ? (statusOption.value === '' ? '#FFFFFF' : statusConfig?.text || colors.textPrimary)
                                 : colors.textPrimary 
                             }}
                           >
@@ -318,16 +348,19 @@ export default function CustomersScreen() {
                 </View>
 
                 {/* Gender Filter */}
-                <View>
-                  <Text size="xs" variant="secondary" style={tw`mb-2`}>
-                    Gender
-                  </Text>
+                <View style={tw`mb-4`}>
+                  <View style={tw`mb-3`}>
+                    <Text size="sm" weight="semibold" variant="secondary">
+                      Gender
+                    </Text>
+                  </View>
                   <View style={tw`flex-row flex-wrap gap-2`}>
                     {[
                       { value: '', label: 'All' },
                       { value: 'male', label: 'Male' },
                       { value: 'female', label: 'Female' },
                     ].map((genderOption) => {
+                      const genderConfig = genderOption.value !== '' ? getGenderColor(genderOption.value) : null;
                       const isSelected = genderFilter === genderOption.value;
                       return (
                         <TouchableOpacity
@@ -340,7 +373,7 @@ export default function CustomersScreen() {
                             tw`px-3 py-2.5 rounded-xl`,
                             {
                               backgroundColor: isSelected 
-                                ? (genderOption.value === '' ? SalozyColors.primary.DEFAULT : colors.secondaryBg)
+                                ? (genderOption.value === '' ? SalozyColors.primary.DEFAULT : genderConfig?.bg || colors.secondaryBg)
                                 : colors.secondaryBg,
                               borderWidth: isSelected ? 0 : 1,
                               borderColor: colors.border,
@@ -353,7 +386,7 @@ export default function CustomersScreen() {
                             weight="semibold"
                             style={{ 
                               color: isSelected 
-                                ? (genderOption.value === '' ? '#FFFFFF' : colors.textPrimary)
+                                ? (genderOption.value === '' ? '#FFFFFF' : genderConfig?.text || colors.textPrimary)
                                 : colors.textPrimary 
                             }}
                           >
@@ -385,7 +418,7 @@ export default function CustomersScreen() {
                     </Text>
                   </TouchableOpacity>
                 )}
-              </View>
+              </Animated.View>
             )}
           </View>
 

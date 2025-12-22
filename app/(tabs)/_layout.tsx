@@ -77,6 +77,38 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/* Hidden routes - accessible via sidebar but not shown in tab bar */}
+      <Tabs.Screen
+        name="customers"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="services"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="staff"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="purchased-plans"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="branches"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
     </AuthGuard>
   );

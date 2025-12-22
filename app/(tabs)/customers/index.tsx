@@ -193,7 +193,6 @@ export default function CustomersScreen() {
       <GlobalHeader
         title="Customers"
         subtitle="Manage your customers"
-        showBackButton={true}
         rightAction={
           <TouchableOpacity
             onPress={() => setShowAddModal(true)}

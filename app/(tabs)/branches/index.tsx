@@ -205,7 +205,6 @@ export default function BranchesScreen() {
       <GlobalHeader
         title="Branches"
         subtitle="Manage your branches"
-        showBackButton={true}
         rightAction={
           <TouchableOpacity
             onPress={() => router.push('/(tabs)/branches/create')}

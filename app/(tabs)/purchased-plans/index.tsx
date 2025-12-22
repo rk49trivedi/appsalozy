@@ -462,7 +462,6 @@ export default function PurchasedPlansScreen() {
       <GlobalHeader
         title="Purchased Plans"
         subtitle="Manage customer plan purchases"
-        showBackButton={true}
       />
 
       <ScrollView

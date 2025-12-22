@@ -344,7 +344,6 @@ export default function ProfileScreen() {
       <GlobalHeader
         title="Profile"
         subtitle="Update your account details"
-        showBackButton={true}
       />
 
       <ScrollView style={tw`flex-1`} contentContainerStyle={tw`pb-6`} showsVerticalScrollIndicator={false}>

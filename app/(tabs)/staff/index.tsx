@@ -194,7 +194,6 @@ export default function StaffScreen() {
       <GlobalHeader
         title="Staff"
         subtitle="Manage your staff members"
-        showBackButton={true}
         rightAction={
           <TouchableOpacity
             onPress={() => router.push('/(tabs)/staff/create')}

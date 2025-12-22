@@ -198,7 +198,6 @@ export default function ServicesScreen() {
       <GlobalHeader
         title="Services"
         subtitle="Manage your services"
-        showBackButton={true}
         rightAction={
           <TouchableOpacity
             onPress={() => router.push('/(tabs)/services/create')}

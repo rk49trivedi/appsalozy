@@ -16,7 +16,16 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming,
+    withSequence,
+    interpolate,
+} from 'react-native-reanimated';
 import tw from 'twrnc';
+import * as Haptics from 'expo-haptics';
 
 interface User {
   id: number;
@@ -102,6 +111,7 @@ export default function SeatMapScreen() {
   const [selectedAppointment, setSelectedAppointment] = useState<UnassignedAppointment | null>(null);
   const [selectedSeatAppointment, setSelectedSeatAppointment] = useState<Appointment | null>(null);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [successSeatId, setSuccessSeatId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isChecking && !isAuthenticated) {
@@ -159,6 +169,7 @@ export default function SeatMapScreen() {
 
   const handleAssignToSeat = async (appointment: UnassignedAppointment, seat: Seat) => {
     if (seat.status !== 'available') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast.error('This seat is not available', 'Error');
       return;
     }
@@ -166,6 +177,7 @@ export default function SeatMapScreen() {
     try {
       const available = await checkSeatAvailability(seat.id);
       if (!available) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast.error('This seat is not available at the moment', 'Error');
         return;
       }
@@ -180,22 +192,30 @@ export default function SeatMapScreen() {
       );
 
       if (response.success) {
-        showToast.success('Appointment assigned to seat successfully', 'Success');
-        fetchSeatMapData();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setSuccessSeatId(seat.id);
+        showToast.success('Appointment assigned successfully!', 'Success');
+        setTimeout(() => {
+          setSuccessSeatId(null);
+          setSelectedAppointment(null);
+          fetchSeatMapData();
+        }, 1500);
       } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast.error(response.message || 'Failed to assign appointment', 'Error');
       }
     } catch (err: any) {
       const apiError = err as ApiError;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast.error(apiError.message || 'Failed to assign appointment', 'Error');
     } finally {
       setUpdating(null);
-      setSelectedAppointment(null);
     }
   };
 
   const handleMoveToSeat = async (appointment: Appointment, seat: Seat) => {
     if (seat.status !== 'available') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast.error('This seat is not available', 'Error');
       return;
     }
@@ -203,6 +223,7 @@ export default function SeatMapScreen() {
     try {
       const available = await checkSeatAvailability(seat.id);
       if (!available) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast.error('This seat is not available at the moment', 'Error');
         return;
       }
@@ -217,17 +238,24 @@ export default function SeatMapScreen() {
       );
 
       if (response.success) {
-        showToast.success('Appointment moved to new seat successfully', 'Success');
-        fetchSeatMapData();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setSuccessSeatId(seat.id);
+        showToast.success('Appointment moved successfully!', 'Success');
+        setTimeout(() => {
+          setSuccessSeatId(null);
+          setSelectedSeatAppointment(null);
+          fetchSeatMapData();
+        }, 1500);
       } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast.error(response.message || 'Failed to move appointment', 'Error');
       }
     } catch (err: any) {
       const apiError = err as ApiError;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast.error(apiError.message || 'Failed to move appointment', 'Error');
     } finally {
       setUpdating(null);
-      setSelectedSeatAppointment(null);
     }
   };
 
@@ -249,17 +277,20 @@ export default function SeatMapScreen() {
       );
 
       if (response.success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         showToast.success('Appointment moved to pending successfully', 'Success');
+        setSelectedSeatAppointment(null);
         fetchSeatMapData();
       } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast.error(response.message || 'Failed to move appointment', 'Error');
       }
     } catch (err: any) {
       const apiError = err as ApiError;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast.error(apiError.message || 'Failed to move appointment', 'Error');
     } finally {
       setUpdating(null);
-      setSelectedSeatAppointment(null);
     }
   };
 
@@ -318,229 +349,376 @@ export default function SeatMapScreen() {
     }
   };
 
-  // Clean Seat Card Component (Dashboard Style)
-  const SeatCard = ({ seat, onPress }: { seat: Seat; onPress: () => void }) => {
-    const statusColor = getStatusColor(seat.status);
-    const hasAppointment = seat.appointments.length > 0;
-    const appointment = hasAppointment ? seat.appointments[0] : null;
-    const isDropTarget = selectedAppointment && seat.status === 'available';
+  // Animated Appointment Card Component
+  const AppointmentCard = ({ appointment, source }: { appointment: UnassignedAppointment; source: 'pending' }) => {
+    const isSelected = selectedAppointment?.id === appointment.id;
+    const isUpdating = updating === appointment.id;
+    const scale = useSharedValue(1);
+    const pulse = useSharedValue(0);
+
+    React.useEffect(() => {
+      if (isSelected) {
+        scale.value = withSpring(1.02);
+        pulse.value = withSequence(
+          withTiming(1, { duration: 600 }),
+          withTiming(0, { duration: 600 })
+        );
+      } else {
+        scale.value = withSpring(1);
+        pulse.value = withTiming(0);
+      }
+    }, [isSelected]);
+
+    const animatedStyle = useAnimatedStyle(() => {
+      const opacity = interpolate(pulse.value, [0, 1], [1, 0.7]);
+      return {
+        transform: [{ scale: scale.value }],
+        opacity,
+      };
+    });
 
     return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.7}
-        style={tw`mb-3`}
-      >
-        <View
-          style={[
-            tw`rounded-2xl p-4`,
-            {
-              backgroundColor: cardBg,
-              borderWidth: isDropTarget ? 2 : 1,
-              borderColor: isDropTarget ? SalozyColors.primary.DEFAULT : borderColor,
-              borderStyle: isDropTarget ? 'dashed' : 'solid',
-            },
-          ]}
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          onPress={() => {
+            if (isSelected) {
+              setSelectedAppointment(null);
+              setSelectedSeatAppointment(null);
+            } else {
+              setSelectedAppointment(appointment);
+              setSelectedSeatAppointment(null);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+          }}
+          activeOpacity={0.8}
+          style={tw`mb-3`}
         >
-          {/* Header with Status */}
-          <View style={tw`flex-row items-center justify-between mb-3`}>
-            <View style={tw`flex-row items-center flex-1`}>
+          <View
+            style={[
+              tw`rounded-2xl p-4`,
+              {
+                backgroundColor: cardBg,
+                borderWidth: isSelected ? 3 : 1,
+                borderColor: isSelected 
+                  ? SalozyColors.primary.DEFAULT 
+                  : borderColor,
+                shadowColor: isSelected ? SalozyColors.primary.DEFAULT : '#000',
+                shadowOffset: { width: 0, height: isSelected ? 6 : 2 },
+                shadowOpacity: isSelected ? 0.3 : 0.1,
+                shadowRadius: isSelected ? 12 : 4,
+                elevation: isSelected ? 8 : 2,
+              },
+            ]}
+          >
+            <View style={tw`flex-row items-center mb-3`}>
               <View
                 style={[
-                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-                  { backgroundColor: statusColor.bg },
+                  tw`w-12 h-12 rounded-full items-center justify-center mr-3`,
+                  { 
+                    backgroundColor: isSelected
+                      ? SalozyColors.primary.DEFAULT + '20'
+                      : isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)',
+                    borderWidth: isSelected ? 2 : 0,
+                    borderColor: SalozyColors.primary.DEFAULT,
+                  },
                 ]}
               >
                 <Text
-                  size="base"
+                  size="lg"
                   weight="bold"
-                  style={{ color: statusColor.color }}
+                  style={{ color: SalozyColors.primary.DEFAULT }}
                 >
-                  {seat.name.charAt(0)}
+                  {appointment.user.name.charAt(0).toUpperCase()}
                 </Text>
               </View>
               <View style={tw`flex-1`}>
-                <Text size="base" weight="bold" variant="primary">
-                  {seat.name}
+                <Text
+                  size="base"
+                  weight="bold"
+                  variant="primary"
+                  numberOfLines={1}
+                >
+                  {appointment.user.name}
                 </Text>
-                {seat.staff && (
-                  <Text size="xs" variant="secondary">
-                    {seat.staff.name}
-                  </Text>
-                )}
+                <Text
+                  size="xs"
+                  variant="secondary"
+                >
+                  #{appointment.ticket_number}
+                </Text>
               </View>
-            </View>
-            <View
-              style={[
-                tw`px-2 py-1 rounded-full`,
-                { backgroundColor: statusColor.badge },
-              ]}
-            >
-              <Text size="xs" weight="semibold" style={{ color: statusColor.color }}>
-                {seat.status === 'available' ? 'Available' : 
-                 seat.status === 'occupied' ? 'Occupied' :
-                 seat.status === 'cleaning' ? 'Cleaning' :
-                 seat.status === 'maintenance' ? 'Maintenance' : seat.status}
-              </Text>
-            </View>
-          </View>
-
-          {/* Appointment Content */}
-          {hasAppointment && appointment ? (
-            <View
-              style={[
-                tw`p-3 rounded-xl`,
-                { backgroundColor: colors.secondaryBg },
-              ]}
-            >
-              <View style={tw`flex-row items-center mb-2`}>
+              {isUpdating ? (
+                <ActivityIndicator size="small" color={SalozyColors.primary.DEFAULT} />
+              ) : isSelected ? (
                 <View
                   style={[
-                    tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-                    { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' },
+                    tw`w-8 h-8 rounded-full items-center justify-center`,
+                    { backgroundColor: SalozyColors.primary.DEFAULT },
                   ]}
                 >
-                  <Text
-                    size="base"
-                    weight="bold"
-                    style={{ color: SalozyColors.primary.DEFAULT }}
-                  >
-                    {appointment.user.name.charAt(0).toUpperCase()}
-                  </Text>
+                  <Text size="sm" style={{ color: '#FFFFFF' }}>✓</Text>
                 </View>
-                <View style={tw`flex-1`}>
-                  <Text size="sm" weight="semibold" variant="primary" numberOfLines={1}>
-                    {appointment.user.name}
-                  </Text>
-                  <Text size="xs" variant="secondary">
-                    #{appointment.ticket_number}
-                  </Text>
+              ) : (
+                <View
+                  style={[
+                    tw`w-8 h-8 rounded-full items-center justify-center`,
+                    { backgroundColor: colors.secondaryBg },
+                  ]}
+                >
+                  <Text size="xs" variant="secondary">Tap</Text>
                 </View>
-              </View>
-              <View style={tw`flex-row items-center gap-2 mb-2`}>
-                <Badge variant="info">
-                  {appointment.service_name}
-                </Badge>
-                {appointment.start_time && (
+              )}
+            </View>
+
+            <View style={tw`flex-row flex-wrap gap-2`}>
+              {appointment.services.map((service) => (
+                <View
+                  key={service.id}
+                  style={[
+                    tw`px-3 py-1.5 rounded-lg`,
+                    { 
+                      backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)',
+                      borderWidth: 1,
+                      borderColor: SalozyColors.primary.DEFAULT + '30',
+                    },
+                  ]}
+                >
+                  <Text size="xs" weight="semibold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                    {service.name}
+                  </Text>
                   <Text size="xs" variant="tertiary">
-                    {formatTime(appointment.start_time)}
+                    {formatDuration(service.duration_minutes)}
                   </Text>
-                )}
-              </View>
+                </View>
+              ))}
             </View>
-          ) : (
-            <View
-              style={[
-                tw`p-4 rounded-xl items-center justify-center`,
-                { 
-                  backgroundColor: colors.secondaryBg,
-                  minHeight: 60,
-                },
-              ]}
-            >
-              <Text size="sm" variant="secondary" style={tw`text-center`}>
-                {seat.status === 'available' ? 'Drag appointment here' : 'Not available'}
-              </Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
-  // Appointment Card Component (Dashboard Style)
-  const AppointmentCard = ({ appointment }: { appointment: UnassignedAppointment }) => {
-    const isSelected = selectedAppointment?.id === appointment.id;
-    const isUpdating = updating === appointment.id;
+  // Animated Seat Card Component
+  const SeatCard = ({ seat }: { seat: Seat }) => {
+    const statusColor = getStatusColor(seat.status);
+    const hasAppointment = seat.appointments.length > 0;
+    const appointment = hasAppointment ? seat.appointments[0] : null;
+    const isSelected = selectedSeatAppointment?.id === appointment?.id;
+    const isTarget = selectedAppointment && seat.status === 'available';
+    const isSuccess = successSeatId === seat.id;
+    const scale = useSharedValue(1);
+    const glow = useSharedValue(0);
+
+    React.useEffect(() => {
+      if (isTarget || isSuccess) {
+        scale.value = withSpring(1.05);
+        glow.value = withTiming(1, { duration: 300 });
+      } else {
+        scale.value = withSpring(1);
+        glow.value = withTiming(0, { duration: 200 });
+      }
+    }, [isTarget, isSuccess]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+      shadowOpacity: interpolate(glow.value, [0, 1], [0.1, 0.4]),
+    }));
 
     return (
-      <TouchableOpacity
-        onPress={() => {
-          if (isSelected) {
-            setSelectedAppointment(null);
-          } else {
-            setSelectedAppointment(appointment);
-            setSelectedSeatAppointment(null);
-          }
-        }}
-        activeOpacity={0.7}
-        style={tw`mb-3`}
-      >
-        <View
-          style={[
-            tw`rounded-2xl p-4`,
-            {
-              backgroundColor: cardBg,
-              borderWidth: isSelected ? 2 : 1,
-              borderColor: isSelected ? SalozyColors.primary.DEFAULT : borderColor,
-            },
-          ]}
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => {
+            if (selectedAppointment && seat.status === 'available') {
+              handleAssignToSeat(selectedAppointment, seat);
+            } else if (selectedSeatAppointment && appointment && selectedSeatAppointment.id !== appointment.id && seat.status === 'available') {
+              handleMoveToSeat(selectedSeatAppointment, seat);
+            } else if (appointment) {
+              if (isSelected) {
+                setSelectedSeatAppointment(null);
+                setSelectedAppointment(null);
+              } else {
+                setSelectedSeatAppointment(appointment);
+                setSelectedAppointment(null);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }
+            } else if (seat.status === 'available' && selectedAppointment) {
+              handleAssignToSeat(selectedAppointment, seat);
+            }
+          }}
         >
-          <View style={tw`flex-row items-center mb-3`}>
-            <View
-              style={[
-                tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
-                { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' },
-              ]}
-            >
-              <Text
-                size="base"
-                weight="bold"
-                style={{ color: SalozyColors.primary.DEFAULT }}
-              >
-                {appointment.user.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <View style={tw`flex-1`}>
-              <Text
-                size="sm"
-                weight="semibold"
-                variant="primary"
-                numberOfLines={1}
-              >
-                {appointment.user.name}
-              </Text>
-              <Text
-                size="xs"
-                variant="secondary"
-              >
-                #{appointment.ticket_number}
-              </Text>
-            </View>
-            {isUpdating ? (
-              <ActivityIndicator size="small" color={SalozyColors.primary.DEFAULT} />
-            ) : isSelected ? (
+          <View
+            style={[
+              tw`rounded-2xl p-4 mb-3`,
+              {
+                backgroundColor: cardBg,
+                borderWidth: isTarget ? 3 : isSuccess ? 3 : isSelected ? 2 : 1,
+                borderColor: isTarget 
+                  ? SalozyColors.primary.DEFAULT 
+                  : isSuccess 
+                  ? SalozyColors.status.success
+                  : isSelected
+                  ? SalozyColors.primary.DEFAULT
+                  : borderColor,
+                borderStyle: isTarget ? 'dashed' : 'solid',
+                shadowColor: isTarget || isSuccess ? SalozyColors.primary.DEFAULT : '#000',
+                shadowOffset: { width: 0, height: (isTarget || isSuccess) ? 8 : 2 },
+                shadowRadius: (isTarget || isSuccess) ? 16 : 4,
+              },
+            ]}
+          >
+            {/* Header with Status */}
+            <View style={tw`flex-row items-center justify-between mb-3`}>
+              <View style={tw`flex-row items-center flex-1`}>
+                <View
+                  style={[
+                    tw`w-12 h-12 rounded-full items-center justify-center mr-3`,
+                    { 
+                      backgroundColor: isSuccess 
+                        ? SalozyColors.status.success + '40'
+                        : statusColor.bg,
+                      borderWidth: isSuccess ? 2 : 0,
+                      borderColor: SalozyColors.status.success,
+                    },
+                  ]}
+                >
+                  {isSuccess ? (
+                    <Text size="lg" style={{ color: SalozyColors.status.success }}>✓</Text>
+                  ) : (
+                    <Text
+                      size="base"
+                      weight="bold"
+                      style={{ color: statusColor.color }}
+                    >
+                      {seat.name.charAt(0)}
+                    </Text>
+                  )}
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" variant="primary">
+                    {seat.name}
+                  </Text>
+                  {seat.staff && (
+                    <Text size="xs" variant="secondary">
+                      {seat.staff.name}
+                    </Text>
+                  )}
+                </View>
+              </View>
               <View
                 style={[
-                  tw`w-6 h-6 rounded-full items-center justify-center`,
-                  { backgroundColor: SalozyColors.primary.DEFAULT },
+                  tw`px-2 py-1 rounded-full`,
+                  { backgroundColor: statusColor.badge },
                 ]}
               >
-                <Text size="xs" style={{ color: '#FFFFFF' }}>✓</Text>
+                <Text size="xs" weight="semibold" style={{ color: statusColor.color }}>
+                  {seat.status === 'available' ? 'Available' : 
+                   seat.status === 'occupied' ? 'Occupied' :
+                   seat.status === 'cleaning' ? 'Cleaning' :
+                   seat.status === 'maintenance' ? 'Maintenance' : seat.status}
+                </Text>
               </View>
-            ) : null}
-          </View>
+            </View>
 
-          <View style={tw`flex-row flex-wrap gap-2`}>
-            {appointment.services.map((service) => (
+            {/* Appointment Content or Drop Zone */}
+            {hasAppointment && appointment ? (
               <View
-                key={service.id}
                 style={[
-                  tw`px-3 py-1.5 rounded-lg`,
-                  { backgroundColor: colors.secondaryBg },
+                  tw`p-3 rounded-xl`,
+                  { 
+                    backgroundColor: isSelected 
+                      ? SalozyColors.primary.DEFAULT + '10'
+                      : colors.secondaryBg,
+                    borderWidth: isSelected ? 2 : 0,
+                    borderColor: SalozyColors.primary.DEFAULT,
+                  },
                 ]}
               >
-                <Text size="xs" weight="semibold" variant="primary">
-                  {service.name}
-                </Text>
-                <Text size="xs" variant="tertiary">
-                  {formatDuration(service.duration_minutes)}
-                </Text>
+                <View style={tw`flex-row items-center mb-2`}>
+                  <View
+                    style={[
+                      tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                      { backgroundColor: isDark ? 'rgba(154, 52, 18, 0.2)' : 'rgba(154, 52, 18, 0.1)' },
+                    ]}
+                  >
+                    <Text
+                      size="base"
+                      weight="bold"
+                      style={{ color: SalozyColors.primary.DEFAULT }}
+                    >
+                      {appointment.user.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={tw`flex-1`}>
+                    <Text size="sm" weight="semibold" variant="primary" numberOfLines={1}>
+                      {appointment.user.name}
+                    </Text>
+                    <Text size="xs" variant="secondary">
+                      #{appointment.ticket_number}
+                    </Text>
+                  </View>
+                  {isSelected && (
+                    <View
+                      style={[
+                        tw`w-6 h-6 rounded-full items-center justify-center`,
+                        { backgroundColor: SalozyColors.primary.DEFAULT },
+                      ]}
+                    >
+                      <Text size="xs" style={{ color: '#FFFFFF' }}>✓</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={tw`flex-row items-center gap-2 mb-2`}>
+                  <Badge variant="info">
+                    {appointment.service_name}
+                  </Badge>
+                  {appointment.start_time && (
+                    <Text size="xs" variant="tertiary">
+                      {formatTime(appointment.start_time)}
+                    </Text>
+                  )}
+                </View>
               </View>
-            ))}
+            ) : (
+              <View
+                style={[
+                  tw`p-6 rounded-xl items-center justify-center`,
+                  { 
+                    backgroundColor: isTarget 
+                      ? SalozyColors.primary.DEFAULT + '10'
+                      : colors.secondaryBg,
+                    minHeight: 80,
+                    borderWidth: isTarget ? 2 : 0,
+                    borderColor: SalozyColors.primary.DEFAULT,
+                    borderStyle: 'dashed',
+                  },
+                ]}
+              >
+                {isTarget ? (
+                  <View style={tw`items-center`}>
+                    <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT, textAlign: 'center' }}>
+                      Tap to Assign
+                    </Text>
+                    <Text size="xs" variant="secondary" style={tw`mt-1 text-center`}>
+                      {selectedAppointment?.user.name}
+                    </Text>
+                  </View>
+                ) : seat.status === 'available' ? (
+                  <View style={tw`items-center`}>
+                    <Text size="sm" variant="secondary" style={tw`text-center`}>
+                      {selectedAppointment ? 'Tap to assign selected appointment' : 'Available - Tap to assign'}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text size="sm" variant="secondary" style={tw`text-center`}>
+                    Not available
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
@@ -573,7 +751,7 @@ export default function SeatMapScreen() {
     >
       <GlobalHeader
         title="Seat Map"
-        subtitle={`${seats.length} seats • ${assignedPendingAppointments.length} approved`}
+        subtitle={`${seats.length} seats • ${assignedPendingAppointments.length} to assign`}
         rightAction={
           <TouchableOpacity
             onPress={() => router.back()}
@@ -606,6 +784,34 @@ export default function SeatMapScreen() {
         }
       >
         <View style={tw`px-4`}>
+          {/* Instructions Banner */}
+          {assignedPendingAppointments.length > 0 && (
+            <View
+              style={[
+                tw`rounded-2xl p-4 mb-6`,
+                {
+                  backgroundColor: isDark 
+                    ? 'rgba(154, 52, 18, 0.2)' 
+                    : 'rgba(154, 52, 18, 0.1)',
+                  borderWidth: 2,
+                  borderColor: SalozyColors.primary.DEFAULT + '40',
+                  borderStyle: 'dashed',
+                },
+              ]}
+            >
+              <View style={tw`flex-row items-center`}>
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                    Click to Select & Assign
+                  </Text>
+                  <Text size="xs" variant="secondary" style={tw`mt-1`}>
+                    Tap an appointment to select it, then tap a seat to assign. You can also move appointments between seats.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Approved Appointments Section */}
           {assignedPendingAppointments.length > 0 && (
             <View style={tw`mb-6`}>
@@ -613,9 +819,16 @@ export default function SeatMapScreen() {
                 <Text size="lg" weight="bold" variant="primary">
                   Approved Appointments
                 </Text>
-                <Text size="sm" variant="secondary">
-                  {assignedPendingAppointments.length} {assignedPendingAppointments.length === 1 ? 'appointment' : 'appointments'}
-                </Text>
+                <View
+                  style={[
+                    tw`px-3 py-1 rounded-full`,
+                    { backgroundColor: SalozyColors.primary.DEFAULT + '20' },
+                  ]}
+                >
+                  <Text size="sm" weight="bold" style={{ color: SalozyColors.primary.DEFAULT }}>
+                    {assignedPendingAppointments.length}
+                  </Text>
+                </View>
               </View>
               <View
                 style={[
@@ -631,6 +844,7 @@ export default function SeatMapScreen() {
                   <AppointmentCard
                     key={appointment.id}
                     appointment={appointment}
+                    source="pending"
                   />
                 ))}
               </View>
@@ -643,33 +857,21 @@ export default function SeatMapScreen() {
               <Text size="lg" weight="bold" variant="primary">
                 Seats
               </Text>
-              <Text size="sm" variant="secondary">
-                {seats.length} {seats.length === 1 ? 'seat' : 'seats'}
-              </Text>
+              <View
+                style={[
+                  tw`px-3 py-1 rounded-full`,
+                  { backgroundColor: colors.secondaryBg },
+                ]}
+              >
+                <Text size="sm" variant="secondary">
+                  {seats.length} {seats.length === 1 ? 'seat' : 'seats'}
+                </Text>
+              </View>
             </View>
             <View style={tw`gap-3`}>
-              {seats.map((seat) => {
-                const hasAppointment = seat.appointments.length > 0;
-                const appointment = hasAppointment ? seat.appointments[0] : null;
-
-                return (
-                  <SeatCard
-                    key={seat.id}
-                    seat={seat}
-                    onPress={() => {
-                      if (selectedAppointment) {
-                        handleAssignToSeat(selectedAppointment, seat);
-                      } else if (selectedSeatAppointment && selectedSeatAppointment.id !== appointment?.id) {
-                        handleMoveToSeat(selectedSeatAppointment, seat);
-                      } else if (appointment) {
-                        setSelectedSeatAppointment(appointment);
-                      } else if (seat.status === 'available' && selectedAppointment) {
-                        handleAssignToSeat(selectedAppointment, seat);
-                      }
-                    }}
-                  />
-                );
-              })}
+              {seats.map((seat) => (
+                <SeatCard key={seat.id} seat={seat} />
+              ))}
             </View>
           </View>
 
@@ -680,8 +882,8 @@ export default function SeatMapScreen() {
                 tw`rounded-2xl p-4 mb-6`,
                 {
                   backgroundColor: cardBg,
-                  borderWidth: 1,
-                  borderColor: borderColor,
+                  borderWidth: 2,
+                  borderColor: SalozyColors.primary.DEFAULT,
                 },
               ]}
             >
@@ -709,12 +911,15 @@ export default function SeatMapScreen() {
                   </Text>
                 </View>
               </View>
-              <View style={tw`flex-row gap-2`}>
+              <View style={tw`gap-2`}>
+                <Text size="xs" variant="secondary" style={tw`mb-2`}>
+                  Move this appointment to:
+                </Text>
                 <TouchableOpacity
                   onPress={() => handleMoveToPending(selectedSeatAppointment)}
                   disabled={updating === selectedSeatAppointment.id}
                   style={[
-                    tw`flex-1 px-4 py-3 rounded-xl`,
+                    tw`px-4 py-3 rounded-xl`,
                     {
                       backgroundColor: SalozyColors.status.warning,
                       opacity: updating === selectedSeatAppointment.id ? 0.6 : 1,
@@ -726,7 +931,7 @@ export default function SeatMapScreen() {
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
                     <Text size="sm" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
-                      Move to Pending
+                      Move to Approved Section
                     </Text>
                   )}
                 </TouchableOpacity>

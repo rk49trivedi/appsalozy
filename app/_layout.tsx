@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
@@ -5,6 +6,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 
@@ -237,46 +239,50 @@ export default function RootLayout() {
   // Show loading while checking onboarding status
   if (isCheckingOnboarding) {
     return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
-          <ActivityIndicator size="large" color="#d5821d" />
-        </View>
-      </ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
+            <ActivityIndicator size="large" color="#d5821d" />
+          </View>
+        </ThemeProvider>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <GlobalSidebarProvider>
-        {showSplash ? (
-          <View style={{ flex: 1 }}>
-            <SplashScreen onFinish={() => {
-              setShowSplash(false);
-              // Onboarding will be shown if not completed
-            }} />
-          </View>
-        ) : showOnboarding ? (
-          <View style={{ flex: 1 }}>
-            <OnboardingScreen onFinish={handleOnboardingFinish} />
-          </View>
-        ) : (
-          <>
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="login" options={{ headerShown: false }} />
-              <Stack.Screen name="register-vendor" options={{ headerShown: false }} />
-              <Stack.Screen name="auth/verify-email" options={{ headerShown: false }} />
-              <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
-              <Stack.Screen name="auth/reset-password" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="appointments" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-            <Toast config={toastConfig} topOffset={100} />
-          </>
-        )}
-      </GlobalSidebarProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <GlobalSidebarProvider>
+          {showSplash ? (
+            <View style={{ flex: 1 }}>
+              <SplashScreen onFinish={() => {
+                setShowSplash(false);
+                // Onboarding will be shown if not completed
+              }} />
+            </View>
+          ) : showOnboarding ? (
+            <View style={{ flex: 1 }}>
+              <OnboardingScreen onFinish={handleOnboardingFinish} />
+            </View>
+          ) : (
+            <>
+              <Stack>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="login" options={{ headerShown: false }} />
+                <Stack.Screen name="register-vendor" options={{ headerShown: false }} />
+                <Stack.Screen name="auth/verify-email" options={{ headerShown: false }} />
+                <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
+                <Stack.Screen name="auth/reset-password" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="appointments" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+              </Stack>
+              <StatusBar style="auto" />
+              <Toast config={toastConfig} topOffset={100} />
+            </>
+          )}
+        </GlobalSidebarProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

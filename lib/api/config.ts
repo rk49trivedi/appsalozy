@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   PROFILE_UPDATE: '/profile',
   PROFILE_PASSWORD: '/profile/password',
   PROFILE_DELETE_IMAGE: '/profile/image',
+  PROFILE_DELETE_ACCOUNT: '/profile/account',
   REGISTER_VENDOR: '/register-vendor',
   VERIFY_EMAIL: '/verify-email',
   RESEND_VERIFICATION_EMAIL: '/verify-email/resend',

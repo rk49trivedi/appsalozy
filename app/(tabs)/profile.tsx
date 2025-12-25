@@ -11,7 +11,7 @@ import { showToast } from '@/lib/toast';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 
@@ -73,6 +73,9 @@ export default function ProfileScreen() {
   const [imageSelectionType, setImageSelectionType] = useState<'profile' | 'logo' | null>(null);
   const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
   const [deleteType, setDeleteType] = useState<'profile' | 'logo' | null>(null);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+  const [deleteAccountConfirmText, setDeleteAccountConfirmText] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (!isChecking && !isAuthenticated) {
@@ -120,8 +123,16 @@ export default function ProfileScreen() {
     }
   };
 
-  const isVendor = userRoles.some(role => role.toLowerCase().includes('vendor'));
-  const isCustomer = userRoles.some(role => role.toLowerCase().includes('customer'));
+  // Check if user has vendor role (case-insensitive, exact match or contains)
+  const isVendor = userRoles.some(role => {
+    const roleLower = role.toLowerCase();
+    return roleLower === 'vendor' || roleLower.includes('vendor');
+  });
+  // Check if user has customer role (case-insensitive, exact match or contains)
+  const isCustomer = userRoles.some(role => {
+    const roleLower = role.toLowerCase();
+    return roleLower === 'customer' || roleLower.includes('customer');
+  });
 
   const pickImage = (type: 'profile' | 'logo') => {
     setImageSelectionType(type);
@@ -792,6 +803,53 @@ export default function ProfileScreen() {
               </View>
             </View>
           )}
+
+          {/* Delete Account Section - Always visible (mobile app only supports vendors) */}
+          {user && (
+            <View style={[
+              tw`rounded-2xl p-4 mt-4`,
+              { backgroundColor: cardBg, borderWidth: 1, borderColor: SalozyColors.status.error + '40' }
+            ]}>
+              <View style={tw`flex-row items-center mb-3`}>
+                <View style={[
+                  tw`w-10 h-10 rounded-full items-center justify-center mr-3`,
+                  { backgroundColor: 'rgba(239, 68, 68, 0.1)' }
+                ]}>
+                  <Text size="xl" weight="bold" style={{ color: SalozyColors.status.error }}>
+                    ⚠
+                  </Text>
+                </View>
+                <View style={tw`flex-1`}>
+                  <Text size="base" weight="bold" style={{ color: SalozyColors.status.error }}>
+                    Danger Zone
+                  </Text>
+                  <Text size="xs" variant="secondary">
+                    Permanently delete your account
+                  </Text>
+                </View>
+              </View>
+              <Text
+                size="sm"
+                variant="secondary"
+                style={[tw`mb-4`, { color: textSecondary }]}
+              >
+                Once you delete your account, there is no going back. This will permanently delete your account, 
+                all branches, staff, appointments, services, subscriptions, and all related data.
+              </Text>
+              <TouchableOpacity
+                onPress={() => setDeleteAccountModalVisible(true)}
+                style={[
+                  tw`px-6 py-4 rounded-2xl`,
+                  { backgroundColor: SalozyColors.status.error }
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+                  Delete My Account
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -948,6 +1006,156 @@ export default function ProfileScreen() {
                   setDeleteConfirmModalVisible(false);
                   setDeleteType(null);
                 }}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl border`,
+                  { borderColor: borderColor },
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text
+                  size="base"
+                  weight="semibold"
+                  variant="secondary"
+                  style={{ textAlign: 'center' }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        visible={deleteAccountModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+      >
+        <Pressable
+          style={tw`flex-1 justify-center items-center bg-black/50`}
+          onPress={() => setDeleteAccountModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={[
+              tw`mx-4 rounded-3xl px-6 pt-6 pb-5`,
+              { backgroundColor: cardBg, minWidth: 300, maxWidth: 400 },
+            ]}
+          >
+            <View style={tw`items-center mb-4`}>
+              <View
+                style={[
+                  tw`w-16 h-16 rounded-full items-center justify-center mb-3`,
+                  { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+                ]}
+              >
+                <Text
+                  size="2xl"
+                  weight="bold"
+                  style={{ color: SalozyColors.status.error }}
+                >
+                  ⚠
+                </Text>
+              </View>
+              <Text size="xl" weight="bold" variant="primary" style={tw`mb-2 text-center`}>
+                Delete Account
+              </Text>
+              <Text
+                size="sm"
+                variant="secondary"
+                style={[tw`text-center mb-2`, { color: textSecondary }]}
+              >
+                This action cannot be undone! This will permanently delete:
+              </Text>
+              <View style={tw`mb-3`}>
+                <Text size="xs" variant="secondary" style={[tw`text-left`, { color: textSecondary }]}>
+                  • Your vendor account{'\n'}
+                  • All branches and branch data{'\n'}
+                  • All staff members{'\n'}
+                  • All appointments and services{'\n'}
+                  • All subscriptions and plans{'\n'}
+                  • All related data
+                </Text>
+              </View>
+              <Text
+                size="sm"
+                weight="bold"
+                style={[tw`text-center mb-3`, { color: SalozyColors.status.error }]}
+              >
+                Type "DELETE" to confirm
+              </Text>
+              <Input
+                value={deleteAccountConfirmText}
+                onChangeText={setDeleteAccountConfirmText}
+                placeholder="Type DELETE"
+                style={tw`w-full`}
+              />
+            </View>
+
+            <View style={tw`gap-3 mt-2`}>
+              <TouchableOpacity
+                onPress={async () => {
+                  if (deleteAccountConfirmText !== 'DELETE') {
+                    showToast.error('Please type "DELETE" to confirm', 'Invalid Confirmation');
+                    return;
+                  }
+
+                  setDeletingAccount(true);
+                  try {
+                    const response = await apiClient.deleteAccount();
+                    if (response.success) {
+                      showToast.success('Account deleted successfully', 'Success');
+                      await apiClient.logout();
+                      router.replace('/login');
+                    }
+                  } catch (err: any) {
+                    const apiError = err as ApiError;
+                    showToast.error(apiError.message || 'Failed to delete account', 'Error');
+                  } finally {
+                    setDeletingAccount(false);
+                    setDeleteAccountModalVisible(false);
+                    setDeleteAccountConfirmText('');
+                  }
+                }}
+                disabled={deletingAccount || deleteAccountConfirmText !== 'DELETE'}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl`,
+                  {
+                    backgroundColor: SalozyColors.primary.DEFAULT,
+                    opacity: deletingAccount || deleteAccountConfirmText !== 'DELETE' ? 0.5 : 1,
+                  },
+                ]}
+                activeOpacity={0.8}
+              >
+                {deletingAccount ? (
+                  <View style={tw`flex-row items-center justify-center`}>
+                    <ActivityIndicator size="small" color="#FFFFFF" style={tw`mr-2`} />
+                    <Text
+                      size="base"
+                      weight="bold"
+                      style={{ color: '#FFFFFF', textAlign: 'center' }}
+                    >
+                      Deleting...
+                    </Text>
+                  </View>
+                ) : (
+                  <Text
+                    size="base"
+                    weight="bold"
+                    style={{ color: '#FFFFFF', textAlign: 'center' }}
+                  >
+                    Delete My Account
+                  </Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setDeleteAccountModalVisible(false);
+                  setDeleteAccountConfirmText('');
+                }}
+                disabled={deletingAccount}
                 style={[
                   tw`w-full px-5 py-3.5 rounded-xl border`,
                   { borderColor: borderColor },

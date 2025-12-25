@@ -374,6 +374,11 @@ class ApiClient {
   }): Promise<ApiResponse> {
     return this.post('/reset-password', data, false);
   }
+
+  // Delete account (vendor only)
+  async deleteAccount(): Promise<ApiResponse> {
+    return this.delete('/profile/account');
+  }
 }
 
 export const apiClient = new ApiClient();

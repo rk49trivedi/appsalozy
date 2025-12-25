@@ -1,8 +1,9 @@
 /**
- * Permission utilities for requesting camera and media library permissions
+ * Permission utilities for requesting camera permissions
+ * Note: Photo library access uses Android photo picker (no permission needed)
  */
-import { Platform, PermissionsAndroid, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 /**
  * Request camera permission for Android
@@ -44,20 +45,13 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 };
 
 /**
- * Request media library permission (automatic like camera)
+ * Request media library permission (deprecated - uses Android photo picker)
+ * This function is kept for backward compatibility but no longer requests permissions
+ * Android photo picker doesn't require persistent permissions
  */
 export const requestMediaLibraryPermission = async (): Promise<boolean> => {
-  // Request permission automatically - expo-image-picker handles this
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-  if (status !== 'granted') {
-    Alert.alert(
-      'Permission Required',
-      'We need access to your photos to upload images. Please enable it in your device settings.'
-    );
-    return false;
-  }
-  
+  // Android photo picker doesn't require permissions
+  // iOS permissions are handled automatically by expo-image-picker
   return true;
 };
 

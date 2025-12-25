@@ -967,21 +967,21 @@ export default function EditAppointmentScreen() {
             style={[
               tw`px-6 py-4 rounded-xl mt-2`,
               { 
-                backgroundColor: (submitting || dayClosed) ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
-                opacity: (submitting || dayClosed) ? 0.6 : 1
+                backgroundColor: dayClosed ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
+                opacity: (submitting || dayClosed) ? 0.7 : 1
               }
             ]}
             activeOpacity={0.8}
           >
             {submitting ? (
               <View style={tw`flex-row items-center justify-center`}>
-                <ActivityIndicator size="small" color={SalozyColors.primary.DEFAULT} style={tw`mr-2`} />
-                <Text size="base" weight="bold" style={{ color: SalozyColors.primary.DEFAULT, textAlign: 'center' }}>
+                <ActivityIndicator size="small" color="#FFFFFF" style={tw`mr-2`} />
+                <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
                   Processing...
                 </Text>
               </View>
             ) : (
-              <Text size="base" weight="bold" style={{ color: '#FFFFFF', textAlign: 'center' }}>
+              <Text size="base" weight="bold" style={{ color: dayClosed ? textSecondary : '#FFFFFF', textAlign: 'center' }}>
                 Update Appointment
               </Text>
             )}

@@ -1,7 +1,7 @@
 import { Input, Text } from '@/components/atoms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { requestCameraPermissionAsync, requestMediaLibraryPermission } from '@/lib/permissions';
+import { requestCameraPermissionAsync } from '@/lib/permissions';
 import { showToast } from '@/lib/toast';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
@@ -308,10 +308,8 @@ export function PlanRefundModal({
                           text: 'Photo Library',
                           onPress: async () => {
                             try {
-                              const hasPermission = await requestMediaLibraryPermission();
-                              if (!hasPermission) {
-                                return;
-                              }
+                              // No permission needed - Android photo picker handles access automatically
+                              // iOS permissions are handled automatically by expo-image-picker
 
                               const result = await ImagePicker.launchImageLibraryAsync({
                                 mediaTypes: ImagePicker.MediaTypeOptions.Images,

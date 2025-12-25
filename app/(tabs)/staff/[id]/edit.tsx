@@ -462,8 +462,8 @@ export default function EditStaffScreen() {
             style={[
               tw`px-6 py-4 rounded-2xl mt-2`,
               {
-                backgroundColor: submitting ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
-                opacity: submitting ? 0.6 : 1
+                backgroundColor: SalozyColors.primary.DEFAULT,
+                opacity: submitting ? 0.7 : 1
               }
             ]}
             activeOpacity={0.8}

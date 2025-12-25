@@ -6,11 +6,11 @@ import { API_ENDPOINTS } from '@/lib/api/config';
 import { showToast } from '@/lib/toast';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
@@ -304,8 +304,8 @@ export function AddCustomerModal({ visible, onClose, onSuccess }: AddCustomerMod
                 style={[
                   tw`px-6 py-4 rounded-2xl mt-2`,
                   {
-                    backgroundColor: submitting ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
-                    opacity: submitting ? 0.6 : 1
+                    backgroundColor: SalozyColors.primary.DEFAULT,
+                    opacity: submitting ? 0.7 : 1
                   }
                 ]}
                 activeOpacity={0.8}

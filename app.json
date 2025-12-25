@@ -22,9 +22,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.salozy",
       "permissions": [
-        "CAMERA",
-        "READ_MEDIA_IMAGES",
-        "READ_EXTERNAL_STORAGE"
+        "CAMERA"
       ]
     },
     "web": {

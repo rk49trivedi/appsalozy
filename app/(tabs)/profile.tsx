@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
-import { requestCameraPermissionAsync, requestMediaLibraryPermission } from '@/lib/permissions';
+import { requestCameraPermissionAsync } from '@/lib/permissions';
 import { showToast } from '@/lib/toast';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -185,11 +185,8 @@ export default function ProfileScreen() {
     
     setImageSelectionModalVisible(false);
     
-    // Automatically request permission like camera does
-    const hasPermission = await requestMediaLibraryPermission();
-    if (!hasPermission) {
-      return;
-    }
+    // No permission needed - Android photo picker handles access automatically
+    // iOS permissions are handled automatically by expo-image-picker
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -685,8 +682,8 @@ export default function ProfileScreen() {
                 style={[
                   tw`px-6 py-4 rounded-2xl mt-2`,
                   {
-                    backgroundColor: submitting ? colors.secondaryBg : SalozyColors.primary.DEFAULT,
-                    opacity: submitting ? 0.6 : 1
+                    backgroundColor: SalozyColors.primary.DEFAULT,
+                    opacity: submitting ? 0.7 : 1
                   }
                 ]}
                 activeOpacity={0.8}

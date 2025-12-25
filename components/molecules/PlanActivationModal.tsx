@@ -1,11 +1,13 @@
 import { Input, Text } from '@/components/atoms';
 import { getThemeColors, SalozyColors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { requestCameraPermissionAsync, requestMediaLibraryPermission } from '@/lib/permissions';
 import { showToast } from '@/lib/toast';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
     Modal,
     Platform,
@@ -246,21 +248,73 @@ export function PlanActivationModal({
               <TouchableOpacity
                 onPress={async () => {
                   try {
-                    const result = await ImagePicker.launchImageLibraryAsync({
-                      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                      allowsEditing: false,
-                      quality: 0.8,
-                    });
-                    if (!result.canceled && result.assets[0]) {
-                      const asset = result.assets[0];
-                      setReceipt({
-                        uri: asset.uri,
-                        type: 'image/jpeg',
-                        name: asset.uri.split('/').pop() || 'receipt.jpg',
-                      });
-                    }
+                    Alert.alert(
+                      'Select Receipt',
+                      'Choose an option',
+                      [
+                        {
+                          text: 'Camera',
+                          onPress: async () => {
+                            try {
+                              const hasPermission = await requestCameraPermissionAsync();
+                              if (!hasPermission) {
+                                return;
+                              }
+
+                              const result = await ImagePicker.launchCameraAsync({
+                                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                allowsEditing: false,
+                                quality: 0.8,
+                              });
+                              if (!result.canceled && result.assets[0]) {
+                                const asset = result.assets[0];
+                                setReceipt({
+                                  uri: asset.uri,
+                                  type: 'image/jpeg',
+                                  name: asset.uri.split('/').pop() || 'receipt.jpg',
+                                });
+                              }
+                            } catch (err) {
+                              showToast.error('Failed to take photo', 'Error');
+                            }
+                          },
+                        },
+                        {
+                          text: 'Photo Library',
+                          onPress: async () => {
+                            try {
+                              const hasPermission = await requestMediaLibraryPermission();
+                              if (!hasPermission) {
+                                return;
+                              }
+
+                              const result = await ImagePicker.launchImageLibraryAsync({
+                                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                allowsEditing: false,
+                                quality: 0.8,
+                              });
+                              if (!result.canceled && result.assets[0]) {
+                                const asset = result.assets[0];
+                                setReceipt({
+                                  uri: asset.uri,
+                                  type: 'image/jpeg',
+                                  name: asset.uri.split('/').pop() || 'receipt.jpg',
+                                });
+                              }
+                            } catch (err) {
+                              showToast.error('Failed to pick image', 'Error');
+                            }
+                          },
+                        },
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                        },
+                      ],
+                      { cancelable: true }
+                    );
                   } catch (err) {
-                    showToast.error('Failed to pick image', 'Error');
+                    showToast.error('Failed to open image picker', 'Error');
                   }
                 }}
                 style={[

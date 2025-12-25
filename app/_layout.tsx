@@ -8,11 +8,9 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
 
 import { GlobalSidebarProvider, OnboardingScreen, SplashScreen } from '@/components/organisms';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { toastConfig } from '@/lib/toast-config';
 
 const ONBOARDING_COMPLETED_KEY = '@salozy:onboarding_completed';
 
@@ -278,7 +276,6 @@ export default function RootLayout() {
                 <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
               </Stack>
               <StatusBar style="auto" />
-              <Toast config={toastConfig} topOffset={100} />
             </>
           )}
         </GlobalSidebarProvider>

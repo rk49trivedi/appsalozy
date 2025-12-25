@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { apiClient, ApiError } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/config';
+import { requestCameraPermissionAsync, requestMediaLibraryPermission } from '@/lib/permissions';
 import { showToast } from '@/lib/toast';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -118,37 +119,88 @@ export default function ProfileScreen() {
   const isCustomer = userRoles.some(role => role.toLowerCase().includes('customer'));
 
   const pickImage = async (type: 'profile' | 'logo') => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'We need access to your photos to upload images.');
-      return;
-    }
+    // Show action sheet to choose between camera and photo library
+    Alert.alert(
+      'Select Image',
+      'Choose an option',
+      [
+        {
+          text: 'Camera',
+          onPress: async () => {
+            const hasPermission = await requestCameraPermissionAsync();
+            if (!hasPermission) {
+              return;
+            }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: type === 'logo' ? [1, 1] : [1, 1],
-      quality: 0.8,
-    });
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: type === 'logo' ? [1, 1] : [1, 1],
+              quality: 0.8,
+            });
 
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      if (type === 'profile') {
-        setProfileImageUri(asset.uri);
-        setProfileImageFile({
-          uri: asset.uri,
-          type: 'image/jpeg',
-          name: 'profile.jpg',
-        });
-      } else {
-        setLogoImageUri(asset.uri);
-        setLogoImageFile({
-          uri: asset.uri,
-          type: 'image/jpeg',
-          name: 'logo.jpg',
-        });
-      }
-    }
+            if (!result.canceled && result.assets[0]) {
+              const asset = result.assets[0];
+              if (type === 'profile') {
+                setProfileImageUri(asset.uri);
+                setProfileImageFile({
+                  uri: asset.uri,
+                  type: 'image/jpeg',
+                  name: 'profile.jpg',
+                });
+              } else {
+                setLogoImageUri(asset.uri);
+                setLogoImageFile({
+                  uri: asset.uri,
+                  type: 'image/jpeg',
+                  name: 'logo.jpg',
+                });
+              }
+            }
+          },
+        },
+        {
+          text: 'Photo Library',
+          onPress: async () => {
+            const hasPermission = await requestMediaLibraryPermission();
+            if (!hasPermission) {
+              return;
+            }
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: type === 'logo' ? [1, 1] : [1, 1],
+              quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+              const asset = result.assets[0];
+              if (type === 'profile') {
+                setProfileImageUri(asset.uri);
+                setProfileImageFile({
+                  uri: asset.uri,
+                  type: 'image/jpeg',
+                  name: 'profile.jpg',
+                });
+              } else {
+                setLogoImageUri(asset.uri);
+                setLogoImageFile({
+                  uri: asset.uri,
+                  type: 'image/jpeg',
+                  name: 'logo.jpg',
+                });
+              }
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const deleteImage = async (type: 'profile' | 'logo') => {

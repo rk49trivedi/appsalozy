@@ -11,7 +11,7 @@ import { showToast } from '@/lib/toast';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'twrnc';
 
@@ -68,6 +68,11 @@ export default function ProfileScreen() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  
+  const [imageSelectionModalVisible, setImageSelectionModalVisible] = useState(false);
+  const [imageSelectionType, setImageSelectionType] = useState<'profile' | 'logo' | null>(null);
+  const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
+  const [deleteType, setDeleteType] = useState<'profile' | 'logo' | null>(null);
 
   useEffect(() => {
     if (!isChecking && !isAuthenticated) {
@@ -118,130 +123,132 @@ export default function ProfileScreen() {
   const isVendor = userRoles.some(role => role.toLowerCase().includes('vendor'));
   const isCustomer = userRoles.some(role => role.toLowerCase().includes('customer'));
 
-  const pickImage = async (type: 'profile' | 'logo') => {
-    // Show action sheet to choose between camera and photo library
-    Alert.alert(
-      'Select Image',
-      'Choose an option',
-      [
-        {
-          text: 'Camera',
-          onPress: async () => {
-            const hasPermission = await requestCameraPermissionAsync();
-            if (!hasPermission) {
-              return;
-            }
-
-            const result = await ImagePicker.launchCameraAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: type === 'logo' ? [1, 1] : [1, 1],
-              quality: 0.8,
-            });
-
-            if (!result.canceled && result.assets[0]) {
-              const asset = result.assets[0];
-              if (type === 'profile') {
-                setProfileImageUri(asset.uri);
-                setProfileImageFile({
-                  uri: asset.uri,
-                  type: 'image/jpeg',
-                  name: 'profile.jpg',
-                });
-              } else {
-                setLogoImageUri(asset.uri);
-                setLogoImageFile({
-                  uri: asset.uri,
-                  type: 'image/jpeg',
-                  name: 'logo.jpg',
-                });
-              }
-            }
-          },
-        },
-        {
-          text: 'Photo Library',
-          onPress: async () => {
-            const hasPermission = await requestMediaLibraryPermission();
-            if (!hasPermission) {
-              return;
-            }
-
-            const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: type === 'logo' ? [1, 1] : [1, 1],
-              quality: 0.8,
-            });
-
-            if (!result.canceled && result.assets[0]) {
-              const asset = result.assets[0];
-              if (type === 'profile') {
-                setProfileImageUri(asset.uri);
-                setProfileImageFile({
-                  uri: asset.uri,
-                  type: 'image/jpeg',
-                  name: 'profile.jpg',
-                });
-              } else {
-                setLogoImageUri(asset.uri);
-                setLogoImageFile({
-                  uri: asset.uri,
-                  type: 'image/jpeg',
-                  name: 'logo.jpg',
-                });
-              }
-            }
-          },
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ],
-      { cancelable: true }
-    );
+  const pickImage = (type: 'profile' | 'logo') => {
+    setImageSelectionType(type);
+    setImageSelectionModalVisible(true);
   };
 
-  const deleteImage = async (type: 'profile' | 'logo') => {
-    Alert.alert(
-      'Delete Image',
-      `Are you sure you want to delete your ${type} image?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await apiClient.delete(API_ENDPOINTS.PROFILE_DELETE_IMAGE, { type });
-              
-              if (response.success) {
-                showToast.success(response.message || `${type} deleted successfully`, 'Success');
-                if (type === 'profile') {
-                  setProfileImage(null);
-                  setProfileImageUri(null);
-                  setProfileImageFile(null);
-                } else {
-                  setLogoImage(null);
-                  setLogoImageUri(null);
-                  setLogoImageFile(null);
-                }
-                await fetchProfile();
-                if (refreshUser) {
-                  await refreshUser();
-                }
-              } else {
-                showToast.error(response.message || `Failed to delete ${type}`, 'Error');
-              }
-            } catch (err: any) {
-              const apiError = err as ApiError;
-              showToast.error(apiError.message || `Failed to delete ${type}`, 'Error');
-            }
-          },
-        },
-      ]
-    );
+  const handleCameraPick = async () => {
+    if (!imageSelectionType) return;
+    
+    setImageSelectionModalVisible(false);
+    const hasPermission = await requestCameraPermissionAsync();
+    if (!hasPermission) {
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: imageSelectionType === 'logo' ? [1, 1] : [1, 1],
+        quality: 0.8,
+        base64: false,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        if (imageSelectionType === 'profile') {
+          setProfileImageUri(asset.uri);
+          setProfileImageFile({
+            uri: asset.uri,
+            type: 'image/jpeg',
+            name: 'profile.jpg',
+          });
+        } else {
+          setLogoImageUri(asset.uri);
+          setLogoImageFile({
+            uri: asset.uri,
+            type: 'image/jpeg',
+            name: 'logo.jpg',
+          });
+        }
+      }
+    } catch (error) {
+      showToast.error('Failed to take photo', 'Error');
+    }
+  };
+
+  const handlePhotoLibraryPick = async () => {
+    if (!imageSelectionType) return;
+    
+    setImageSelectionModalVisible(false);
+    
+    // Automatically request permission like camera does
+    const hasPermission = await requestMediaLibraryPermission();
+    if (!hasPermission) {
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: imageSelectionType === 'logo' ? [1, 1] : [1, 1],
+        quality: 0.8,
+        base64: false,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        if (imageSelectionType === 'profile') {
+          setProfileImageUri(asset.uri);
+          setProfileImageFile({
+            uri: asset.uri,
+            type: 'image/jpeg',
+            name: 'profile.jpg',
+          });
+        } else {
+          setLogoImageUri(asset.uri);
+          setLogoImageFile({
+            uri: asset.uri,
+            type: 'image/jpeg',
+            name: 'logo.jpg',
+          });
+        }
+      }
+    } catch (error) {
+      showToast.error('Failed to pick image', 'Error');
+    }
+  };
+
+  const deleteImage = (type: 'profile' | 'logo') => {
+    setDeleteType(type);
+    setDeleteConfirmModalVisible(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteType) return;
+    
+    setDeleteConfirmModalVisible(false);
+    
+    try {
+      const response = await apiClient.delete(API_ENDPOINTS.PROFILE_DELETE_IMAGE, { type: deleteType });
+      
+      if (response.success) {
+        showToast.success(response.message || `${deleteType} deleted successfully`, 'Success');
+        if (deleteType === 'profile') {
+          setProfileImage(null);
+          setProfileImageUri(null);
+          setProfileImageFile(null);
+        } else {
+          setLogoImage(null);
+          setLogoImageUri(null);
+          setLogoImageFile(null);
+        }
+        await fetchProfile();
+        if (refreshUser) {
+          await refreshUser();
+        }
+      } else {
+        showToast.error(response.message || `Failed to delete ${deleteType}`, 'Error');
+      }
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      showToast.error(apiError.message || `Failed to delete ${deleteType}`, 'Error');
+    }
+    
+    setDeleteType(null);
   };
 
   const handleSubmit = async () => {
@@ -787,6 +794,179 @@ export default function ProfileScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Image Selection Modal */}
+      <Modal
+        visible={imageSelectionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImageSelectionModalVisible(false)}
+      >
+        <Pressable
+          style={tw`flex-1 justify-center items-center bg-black/50`}
+          onPress={() => setImageSelectionModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={[
+              tw`mx-4 rounded-3xl px-6 pt-6 pb-5`,
+              { backgroundColor: cardBg, minWidth: 300, maxWidth: 400 },
+            ]}
+          >
+            <View style={tw`items-center mb-4`}>
+              <Text size="xl" weight="bold" variant="primary" style={tw`mb-2 text-center`}>
+                Select Image
+              </Text>
+              <Text
+                size="base"
+                variant="secondary"
+                style={[tw`text-center`, { color: textSecondary }]}
+              >
+                Choose an option to {imageSelectionType === 'profile' ? 'upload your profile picture' : 'upload your logo'}
+              </Text>
+            </View>
+
+            <View style={tw`gap-3 mt-2`}>
+              <TouchableOpacity
+                onPress={handlePhotoLibraryPick}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl`,
+                  { backgroundColor: SalozyColors.status.info },
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text
+                  size="base"
+                  weight="bold"
+                  style={{ color: '#FFFFFF', textAlign: 'center' }}
+                >
+                  Photo Library
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCameraPick}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl`,
+                  { backgroundColor: SalozyColors.primary.DEFAULT },
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text
+                  size="base"
+                  weight="bold"
+                  style={{ color: '#FFFFFF', textAlign: 'center' }}
+                >
+                  Camera
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setImageSelectionModalVisible(false)}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl border`,
+                  { borderColor: borderColor },
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text
+                  size="base"
+                  weight="semibold"
+                  variant="secondary"
+                  style={{ textAlign: 'center' }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={deleteConfirmModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteConfirmModalVisible(false)}
+      >
+        <Pressable
+          style={tw`flex-1 justify-center items-center bg-black/50`}
+          onPress={() => setDeleteConfirmModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={[
+              tw`mx-4 rounded-3xl px-6 pt-6 pb-5`,
+              { backgroundColor: cardBg, minWidth: 300, maxWidth: 400 },
+            ]}
+          >
+            <View style={tw`items-center mb-4`}>
+              <View
+                style={[
+                  tw`w-16 h-16 rounded-full items-center justify-center mb-3`,
+                  { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+                ]}
+              >
+                <Text
+                  size="2xl"
+                  weight="bold"
+                  style={{ color: SalozyColors.status.error }}
+                >
+                  ⚠
+                </Text>
+              </View>
+              <Text size="xl" weight="bold" variant="primary" style={tw`mb-2 text-center`}>
+                Delete {deleteType === 'profile' ? 'Profile Image' : 'Logo'}
+              </Text>
+              <Text
+                size="base"
+                variant="secondary"
+                style={[tw`text-center`, { color: textSecondary }]}
+              >
+                Are you sure you want to delete your {deleteType} image? This action cannot be undone.
+              </Text>
+            </View>
+
+            <View style={tw`gap-3 mt-2`}>
+              <TouchableOpacity
+                onPress={handleDeleteConfirm}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl`,
+                  { backgroundColor: SalozyColors.status.error },
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text
+                  size="base"
+                  weight="bold"
+                  style={{ color: '#FFFFFF', textAlign: 'center' }}
+                >
+                  Delete
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setDeleteConfirmModalVisible(false);
+                  setDeleteType(null);
+                }}
+                style={[
+                  tw`w-full px-5 py-3.5 rounded-xl border`,
+                  { borderColor: borderColor },
+                ]}
+                activeOpacity={0.8}
+              >
+                <Text
+                  size="base"
+                  weight="semibold"
+                  variant="secondary"
+                  style={{ textAlign: 'center' }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -44,9 +44,10 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 };
 
 /**
- * Request media library permission
+ * Request media library permission (automatic like camera)
  */
 export const requestMediaLibraryPermission = async (): Promise<boolean> => {
+  // Request permission automatically - expo-image-picker handles this
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   
   if (status !== 'granted') {

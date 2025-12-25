@@ -82,20 +82,92 @@ export function Sidebar({ visible, onClose, onLogout }: SidebarProps) {
     }
   }, [visible]);
 
+  // Helper function to check if pathname matches route (works in both dev and production)
+  const isRouteActive = (route: string, currentPath: string | null): boolean => {
+    if (!currentPath) return false;
+    // Normalize paths by removing leading/trailing slashes and converting to lowercase
+    const normalizedRoute = route.toLowerCase().replace(/^\/+|\/+$/g, '');
+    const normalizedPath = currentPath.toLowerCase().replace(/^\/+|\/+$/g, '');
+    
+    // Check exact match or if path starts with route
+    return normalizedPath === normalizedRoute || normalizedPath.startsWith(normalizedRoute + '/');
+  };
+
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', Icon: DashboardIcon, iconName: 'dashboard', route: '/(tabs)', active: pathname === '/(tabs)' || pathname === '/' },
-    { id: 'appointments', label: 'Appointments', Icon: AppointmentsIcon, iconName: 'event', route: '/(tabs)/appointments', active: pathname?.startsWith('/(tabs)/appointments') || pathname?.startsWith('/appointments') },
-    { id: 'customers', label: 'Customers', Icon: CustomersIcon, iconName: 'people', route: '/(tabs)/customers', active: pathname?.startsWith('/(tabs)/customers') || pathname?.startsWith('/customers') },
-    { id: 'services', label: 'Services', Icon: ServicesIcon, iconName: 'content-cut', route: '/(tabs)/services', active: pathname?.startsWith('/(tabs)/services') || pathname?.startsWith('/services') },
-    { id: 'staff', label: 'Staff', Icon: StaffIcon, iconName: 'work', route: '/(tabs)/staff', active: pathname?.startsWith('/(tabs)/staff') || pathname?.startsWith('/staff') },
-    { id: 'purchased-plans', label: 'Purchased Plans', Icon: PurchasedPlansIcon, iconName: 'card-membership', route: '/(tabs)/purchased-plans', active: pathname?.startsWith('/(tabs)/purchased-plans') || pathname?.startsWith('/purchased-plans') },
-    { id: 'branches', label: 'Branches', Icon: BranchIcon, iconName: 'business', route: '/(tabs)/branches', active: pathname?.startsWith('/(tabs)/branches') || pathname?.startsWith('/branches') },
+    { 
+      id: 'dashboard', 
+      label: 'Dashboard', 
+      Icon: DashboardIcon, 
+      iconName: 'dashboard', 
+      route: '/(tabs)', 
+      active: pathname === '/(tabs)' || pathname === '/' || pathname === '/(tabs)/' || isRouteActive('/(tabs)', pathname)
+    },
+    { 
+      id: 'appointments', 
+      label: 'Appointments', 
+      Icon: AppointmentsIcon, 
+      iconName: 'event', 
+      route: '/(tabs)/appointments', 
+      active: isRouteActive('/(tabs)/appointments', pathname) || isRouteActive('/appointments', pathname)
+    },
+    { 
+      id: 'customers', 
+      label: 'Customers', 
+      Icon: CustomersIcon, 
+      iconName: 'people', 
+      route: '/(tabs)/customers', 
+      active: isRouteActive('/(tabs)/customers', pathname) || isRouteActive('/customers', pathname)
+    },
+    { 
+      id: 'services', 
+      label: 'Services', 
+      Icon: ServicesIcon, 
+      iconName: 'content-cut', 
+      route: '/(tabs)/services', 
+      active: isRouteActive('/(tabs)/services', pathname) || isRouteActive('/services', pathname)
+    },
+    { 
+      id: 'staff', 
+      label: 'Staff', 
+      Icon: StaffIcon, 
+      iconName: 'work', 
+      route: '/(tabs)/staff', 
+      active: isRouteActive('/(tabs)/staff', pathname) || isRouteActive('/staff', pathname)
+    },
+    { 
+      id: 'purchased-plans', 
+      label: 'Purchased Plans', 
+      Icon: PurchasedPlansIcon, 
+      iconName: 'card-membership', 
+      route: '/(tabs)/purchased-plans', 
+      active: isRouteActive('/(tabs)/purchased-plans', pathname) || isRouteActive('/purchased-plans', pathname)
+    },
+    { 
+      id: 'branches', 
+      label: 'Branches', 
+      Icon: BranchIcon, 
+      iconName: 'business', 
+      route: '/(tabs)/branches', 
+      active: isRouteActive('/(tabs)/branches', pathname) || isRouteActive('/branches', pathname)
+    },
   ];
 
   const handleMenuItemPress = (item: { route: string | null }) => {
     if (item.route) {
-      router.push(item.route as any);
-      onClose();
+      try {
+        // Use replace for better navigation in production builds
+        router.push(item.route as any);
+        onClose();
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Fallback: try with replace
+        try {
+          router.replace(item.route as any);
+          onClose();
+        } catch (replaceError) {
+          console.error('Navigation replace error:', replaceError);
+        }
+      }
     } else {
       // TODO: Navigate to these routes when pages are created
       onClose();

@@ -83,30 +83,35 @@ export default function TabLayout() {
         name="customers"
         options={{
           href: null,
+          title: 'Customers',
         }}
       />
       <Tabs.Screen
         name="services"
         options={{
           href: null,
+          title: 'Services',
         }}
       />
       <Tabs.Screen
         name="staff"
         options={{
           href: null,
+          title: 'Staff',
         }}
       />
       <Tabs.Screen
         name="purchased-plans"
         options={{
           href: null,
+          title: 'Purchased Plans',
         }}
       />
       <Tabs.Screen
         name="branches"
         options={{
           href: null,
+          title: 'Branches',
         }}
       />
     </Tabs>
